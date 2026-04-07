@@ -116,6 +116,7 @@ VARnames_base = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
 
 opt_b = BASE;
 [opt_b.T, opt_b.n] = size(vardata_base);
+opt_b.q = opt_b.n;   % q = n for pure VAR (no latent factors)
 
 % --- Estimate BVAR -------------------------------------------------------
 [irf_b, eta_b, ~, ~, ~, ~] = bvar_estimate(vardata_base, opt_b);
