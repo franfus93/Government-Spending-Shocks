@@ -3,7 +3,10 @@ function [factor] = get_factors(kmax,start_sample,end_sample)
 DEMEAN=2;
 jj=2;
 
-csv_in='FRED-QD.csv';% uploading McCracken and Ng dataset
+% Path: Data/FRED-QD.csv relative to the Functions folder parent directory
+func_dir = fileparts(mfilename('fullpath'));
+csv_in   = fullfile(func_dir, '..', 'Data', 'FRED-QD.csv');
+% uploading McCracken and Ng dataset
 
 dum=importdata(csv_in,',');
 tcode=dum.data(2,:);

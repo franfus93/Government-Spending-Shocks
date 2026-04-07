@@ -1,295 +1,121 @@
-%% Importing the data:
+%% main_favar.m  –  FAVAR robustness (Appendix E, DFT 2026)
+%
+%  Tests informational sufficiency of a small-scale VAR (4 macro variables)
+%  and of the FAVAR augmented with 5 principal components from FRED-QD.
+%  Reports Tables E.4 and E.5 and plots Figures E.14–E.15.
+%
+%  Small-scale VAR variables (Table E.4):
+%    1  Government Spending   2  Ft(1,4)   3  Real GDP
+%    4  Federal Surplus       5  10-yr Bond yield
+%
+%  FAVAR variables (Table E.5, Figures E.14–E.15):
+%    [Small-scale VAR (5)] + [C_SD (inequality)] + [5 PCs from FRED-QD]
+%
+%  Estimation: Bayesian VAR(4), NO intercept (factors are demeaned),
+%              5 000 posterior draws
 
-clc; 
-clear;
+clc; clear; close all;
 
-data=readtable('data.xlsx');
+%% ── 0. Paths ─────────────────────────────────────────────────────────────
+root_dir = fileparts(mfilename('fullpath'));
+addpath(fullfile(root_dir, 'Functions'));
+data_dir = fullfile(root_dir, 'Data');
+fig_dir  = fullfile(root_dir, 'Figures');
+tab_dir  = fullfile(root_dir, 'Tables');
+if ~exist(fig_dir, 'dir'), mkdir(fig_dir); end
+if ~exist(tab_dir, 'dir'), mkdir(tab_dir); end
 
-start_sample = datetime('01-Dec-1981','InputFormat','dd-MMM-yyyy');
-end_sample   = datetime('01-Dec-2019','InputFormat','dd-MMM-yyyy');
+%% ── 1. Load data ─────────────────────────────────────────────────────────
+data = readtable(fullfile(data_dir, 'data.xlsx'));
 
+start_sample = datetime('01-Dec-1981', 'InputFormat', 'dd-MMM-yyyy');
+end_sample   = datetime('01-Dec-2019', 'InputFormat', 'dd-MMM-yyyy');
 idx_start = find(data.TIME == start_sample);
 idx_end   = find(data.TIME == end_sample);
 
-F = data(idx_start:idx_end,2); % Measure 1 in FG2016
-N = data(idx_start:idx_end,3); % Measure 2 in FG2016
-FEDGOV = data(idx_start:idx_end,4); % Real government consumption expenditures and gross investment
-GDP = data(idx_start:idx_end,5); % Real GDP
-CONS = data(idx_start:idx_end,6); % Real consumption
-SUR = data(idx_start:idx_end,7); % Federal surplus
-NX = data(idx_start:idx_end,8); % Net exports
-BONDY = data(idx_start:idx_end,9); % Market yield on US Treasury securities at 10-year constant maturity
-RER = data(idx_start:idx_end,10); % Real exchange rate
-C_SD_LNCONS_SA = data(idx_start:idx_end,11); % Cross-sectional standard deviation of real consumption across US households
-C_9010_LNCONS_SA = data(idx_start:idx_end,12); % Interpercentile range 90 - 10
-C_9050_LNCONS_SA  = data(idx_start:idx_end,13); % Interpercentile range 90 - 50
-C_5010_LNCONS_SA  = data(idx_start:idx_end,14); % Interpercentile range 50 - 10
-GINI_COEFFICIENT = data(idx_start:idx_end,15); % Gini coefficient
-FED_FUNDS = data(idx_start:idx_end,16); % Federal funds rate
-SHADOW_RATE = data(idx_start:idx_end,17); % Shadow rate
-SP500 = data(idx_start:idx_end,18); % Stock prices
-GDP_DEFLATOR = log(data(idx_start:idx_end,19)); % GDP deflator
-CPI = log(data(idx_start:idx_end,20)); % CPI
-CPI_INFLATION = data(idx_start:idx_end,21); % CPI Inflation
-BCI = data(idx_start:idx_end,22); % BCI
-CCI = data(idx_start:idx_end,23); % CCI
-REALEARNINGS= data(idx_start:idx_end,24); % CCI
-RAMEY= data(idx_start:idx_end,25); % CCI
-INVESTMENT= data(idx_start:idx_end,26); % CCI
-NBIG= data(idx_start:idx_end,27); % CCI
-FP= data(idx_start:idx_end,28); % CCI
-UNRATE= data(idx_start:idx_end,29); % CCI
-CP = data(idx_start:idx_end,30); % CCI
-CP_before = data(idx_start:idx_end,31); % CCI
-CP_corp = data(idx_start:idx_end,32); % CCI
-DURABLE= data(idx_start:idx_end,33); % CCI
-NONDURABLE = data(idx_start:idx_end,34); % CCI
+F          = data(idx_start:idx_end,  2);   % Ft(1,4)
+FEDGOV     = data(idx_start:idx_end,  4);   % Real govt spending
+GDP        = data(idx_start:idx_end,  5);   % Real GDP
+SUR        = data(idx_start:idx_end,  7);   % Federal surplus
+BONDY      = data(idx_start:idx_end,  9);   % 10-yr bond yield
+C_SD_LNCONS_SA = data(idx_start:idx_end, 11); % Consumption std-dev
 
-%% Estimating the factors
+%% ── 2. Model options ─────────────────────────────────────────────────────
+opt.r       = 9;
+opt.p       = 4;
+opt.c       = 0;     % no intercept (factors already demeaned)
+opt.t       = 0;
+opt.drawfin = 5000;
+opt.hor     = 17;
 
-opt.r=9; % setting the maximum number of factors to be estimated
-opt.p=4; % # of lags
-opt.c=0; % include constant
-opt.t=0; % include deterministic trend
-opt.drawfin=5000;
-opt.hor=17; %number of horizons for the impulse responses
+%% ── 3. Estimate factors from FRED-QD ────────────────────────────────────
+factor = get_factors(opt.r, start_sample, end_sample);
+% factor is (T × r), columns ordered by eigenvalue magnitude
 
-factor = get_factors(opt.r,start_sample,end_sample); % estimating r factors from McCracken and Ng dataset
+%% ── 4. Table E.4 – Informational sufficiency of the small-scale VAR ─────
+%  Small-scale VAR: G, Ft(1,4), GDP, Federal Surplus, Bond Yield
+small_var = [FEDGOV.FEDGOV, F.F, GDP.GDP, SUR.SUR, BONDY.x10YBOND];
+opt_small      = opt;
+opt_small.q    = size(small_var, 2);   % = 5
+opt_small.c    = 1;                    % constant in OLS step of check_orthogonality
+[pval_surp_E4, pval_news_E4] = check_orthogonality(small_var, factor, opt_small);
 
-%% Cleaning N or F
+n_pc = min(7, size(factor, 2));
+save_sufficiency_table(pval_surp_E4, pval_news_E4, n_pc, 'E.4', ...
+    fullfile(tab_dir, 'TableE4.txt'));
 
-p_factor = 0;
-% factor_lag = lagmatrix( factor(:,1:7), 1:p_factor);
-% auxiliary = [(factor_lag(p_factor+1:end,:)),table2array(N(p_factor+1:end,:))];
-% auxiliary_table = array2table(auxiliary);
-% mdl  = fitlm(auxiliary_table);
-% N_clean = mdl.Residuals.Raw;
+%% ── 5. Table E.5 – Informational sufficiency of the FAVAR ───────────────
+%  Full FAVAR: [small_var, C_SD, 5 PCs] = 11 variables total
+macro_favar = [FEDGOV.FEDGOV, F.F, GDP.GDP, SUR.SUR, BONDY.x10YBOND, ...
+               C_SD_LNCONS_SA.C_SD_LNCONS_SA];
+n_macro = size(macro_favar, 2);   % = 6
+favar_data = [macro_favar, factor(:, 1:5)];
 
-%% Defining the FAVAR model
-% F_clean =array2table(F_clean);
-macro_data=([FEDGOV.FEDGOV(p_factor+1:end),F.F(p_factor+1:end), GDP.GDP(p_factor+1:end),SUR.SUR(p_factor+1:end),BONDY.x10YBOND(p_factor+1:end),C_SD_LNCONS_SA.C_SD_LNCONS_SA(p_factor+1:end)]); 
-VARnames={'Government Spending';'$F_t(1,4)$';'Real GDP';'Federal Surplus';'Bond Yield';'Consumption Inequality'};
+% Test shocks from the FAVAR against the remaining factors (6 and 7)
+remaining_factors = factor(:, 6:7);
+opt_favar   = opt;
+opt_favar.q = size(favar_data, 2);   % = 11
+[pval_surp_E5, pval_news_E5] = check_orthogonality(favar_data, remaining_factors, opt_favar);
 
+n_rem = size(remaining_factors, 2);   % = 2
+save_sufficiency_table(pval_surp_E5, pval_news_E5, n_rem, 'E.5', ...
+    fullfile(tab_dir, 'TableE5.txt'));
 
-  macro_orthogonality = ([FEDGOV.FEDGOV(p_factor+1:end),  GDP.GDP(p_factor+1:end),SUR.SUR(p_factor+1:end),BONDY.x10YBOND(p_factor+1:end)]); 
- opt.q=size(macro_orthogonality,2); %number of variables excluding the factors
-[mdl_suff_surprise,mdl_suff_news]  = check_orthogonality(macro_orthogonality,factor,opt);
+%% ── 6. FAVAR BVAR estimation ─────────────────────────────────────────────
+VARnames_favar = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
+                  'Federal Surplus'; 'Bond Yield'; 'Consumption Inequality'};
 
+[opt_favar.T, opt_favar.n] = size(favar_data);
+fprintf('Estimating FAVAR (%d draws)...\n', opt_favar.drawfin);
 
-  opt.q=size(macro_data,2);
-vardata = [macro_data,factor(:,1:5)];
- opt.q=size(vardata,2);
-[mdl_suff_surprise,mdl_suff_news]  = check_orthogonality(vardata,factor,opt);
-  opt.q=size(macro_data,2);
+[candidateirf_wold_favar, eta_favar, ~, ~, ~, ~] = ...
+    bvar_estimate(favar_data, opt_favar);
 
-%vardata = macro_data;
+%% ── 7. Confidence bands ──────────────────────────────────────────────────
+[LowD_f, MiddleD_f, HighD_f] = compute_conf_bands( ...
+    candidateirf_wold_favar, opt_favar.n, opt_favar.hor, 68, 90);
 
+%% ── 8. Figures E.14 & E.15 ──────────────────────────────────────────────
+colorBNDS = [0 0 1];
 
-%% Estimating a Bayesian VAR(4):
-[opt.T,opt.n]=size(vardata);
+% irf_plot_var uses subplot(3,3) for q=6 macro variables
+irf_plot_var(opt_favar.n, n_macro, opt_favar.hor, ...
+             MiddleD_f, HighD_f, LowD_f, VARnames_favar, colorBNDS);
 
-
-% Set up the loop for each draw :
-
-PI=zeros(opt.n*opt.p+opt.c+opt.t,opt.n,opt.drawfin);
-BigA=zeros(opt.n*opt.p,opt.n*opt.p,opt.drawfin);
-Sigma=zeros(opt.n,opt.n,opt.drawfin);
-errornorm=zeros(opt.T-opt.p,opt.n,opt.drawfin);
-fittednorm=zeros(opt.T-opt.p,opt.n,opt.drawfin);
-
-news_shocks=zeros(opt.T-opt.p,opt.drawfin);
-gov_spending_shocks=zeros(opt.T-opt.p,opt.drawfin);
-
-% Reduced-form VAR estimation:
-
-for i=1:opt.drawfin
-    
-    stable=-1;
-    
-    while stable<0
-    
-    % Selecting the priors for the reduced-form estimation    
-    [PI(:,:,i),BigA(:,:,i),Sigma(:,:,i),errornorm(:,:,i),fittednorm(:,:,i)]=BVAR_niw(vardata,opt.p,opt.c,opt.t,opt.n);
-    %[PI(:,:,i),BigA(:,:,i),Sigma(:,:,i),errornorm(:,:,i),fittednorm(:,:,i)]=BVAR_jeffrey(vardata,opt.p,opt.c,opt.t,opt.n);    
-    if abs(eig(BigA(:,:,i)))<1
-        stable=1; % keep only stable draws
-    end
-    
-    end
-    
+figs = findall(0, 'Type', 'figure');
+if numel(figs) >= 2
+    saveas(figs(end),   fullfile(fig_dir, 'FigureE14.pdf'));
+    saveas(figs(end),   fullfile(fig_dir, 'FigureE14.png'));
+    saveas(figs(end-1), fullfile(fig_dir, 'FigureE15.pdf'));
+    saveas(figs(end-1), fullfile(fig_dir, 'FigureE15.png'));
+    fprintf('Saved FigureE14 and FigureE15.\n');
 end
 
-%% SVAR
+%% ── 9. Save workspace ────────────────────────────────────────────────────
+save(fullfile(root_dir, 'Results_FAVAR.mat'), ...
+     'favar_data', 'opt_favar', 'VARnames_favar', ...
+     'candidateirf_wold_favar', 'MiddleD_f', 'HighD_f', 'LowD_f', ...
+     'eta_favar', 'pval_surp_E4', 'pval_news_E4', ...
+     'pval_surp_E5', 'pval_news_E5');
 
-
-candidateirf=zeros(opt.n,opt.n,opt.hor,opt.drawfin); %candidate impulse response
-
-% Set up 4-D matrices for IRFs to be filled in the loop:
-
-C=zeros(opt.n,opt.n,opt.hor,opt.drawfin); 
-D=zeros(opt.n,opt.n,opt.hor,opt.drawfin);
-
-% Structural shocks:
-
-eta=zeros(opt.T-opt.p,opt.n,opt.drawfin);
-
-opt.h = waitbar(0,'Wait...');
-
-for k=1:opt.drawfin
-
-for j=1:opt.hor
-    BigC=BigA(:,:,k)^(j-1);
-    C(:,:,j,k)=BigC(1:opt.n,1:opt.n); % IRFs of the Wold representation
-end
-
-% Cholesky factorization:
-
-S=chol(Sigma(:,:,k),'lower'); % lower triangular matrix
-
-for i=1:opt.hor
-    D(:,:,i,k)=C(:,:,i,k)*S; % Cholesky IRFs
-end
-
-
-    for i=1:opt.hor
-            candidateirf(:,:,i,k)=D(:,:,i,k);
-    end
-    
-    eta(:,:,k)=(squeeze(candidateirf(:,:,1,k))\errornorm(:,:,k)')';
-
-    news_shocks(:,k)=eta(:,2,k);
-    gov_spending_shocks(:,k)=eta(:,1,k);
-    
-    waitbar(k/opt.drawfin,opt.h,sprintf('Percentage completed %2.2f',(k/opt.drawfin)*100))
-
-end
-
-%% Reshape the matrices into a 3D object:
-
-% For each draw, compute a matrix with the IRFs for each variable and each
-% shock for the entire horizon considered, i.e. hor x n*n for the # of
-% draws:
-
-candidateirf_wold=zeros(opt.hor,opt.n*opt.n,opt.drawfin); 
-
-for k=1:opt.drawfin
-    
-candidateirf_wold(:,:,k)=(reshape(permute(candidateirf(:,:,:,k),[3 2 1]),opt.hor,opt.n*opt.n,[]));
-
-end
-
-% Create Probability Bands (confidence sets):
-
-conf_narrow=68;
-conf_large=90;
-
-LowD=zeros(opt.hor,opt.n*opt.n);
-LowD90=zeros(opt.hor,opt.n*opt.n);
-MiddleD=zeros(opt.hor,opt.n*opt.n);
-HighD=zeros(opt.hor,opt.n*opt.n);
-HighD90=zeros(opt.hor,opt.n*opt.n);
-
-for k=1:opt.n
- for j=1:opt.n
-        Dmin = prctile(candidateirf_wold(:,j+opt.n*k-opt.n,:),(100-conf_narrow)/2,3); %16th percentile
-        LowD(:,j+opt.n*k-opt.n) = Dmin; %lower band
-        Dmin90 = prctile(candidateirf_wold(:,j+opt.n*k-opt.n,:),(100-conf_large)/2,3); %16th percentile
-        LowD90(:,j+opt.n*k-opt.n) = Dmin90; %lower band
-        Dmiddle=prctile(candidateirf_wold(:,j+opt.n*k-opt.n,:),50,3); %50th percentile
-        MiddleD(:,j+opt.n*k-opt.n) = Dmiddle; %lower band
-        Dmax = prctile(candidateirf_wold(:,j+opt.n*k-opt.n,:),(100+conf_narrow)/2,3); %84th percentile
-        HighD(:,j+opt.n*k-opt.n) = Dmax; %upper band
-        Dmax90 = prctile(candidateirf_wold(:,j+opt.n*k-opt.n,:),(100+conf_large)/2,3); %84th percentile
-        HighD90(:,j+opt.n*k-opt.n) = Dmax90; %upper band
- end
-end
-
-% Create Cumulative Probability Bands (confidence sets):
-
-LowDlvl=zeros(opt.hor,opt.n*opt.n);
-LowD90lvl=zeros(opt.hor,opt.n*opt.n);
-MiddleDlvl=zeros(opt.hor,opt.n*opt.n);
-HighDlvl=zeros(opt.hor,opt.n*opt.n);
-HighD90lvl=zeros(opt.hor,opt.n*opt.n);
-
-for k=1:opt.n
- for j=1:opt.n
-        Dmin = prctile(cumsum(candidateirf_wold(:,j+opt.n*k-opt.n,:),1),(100-conf_narrow)/2,3); %16th percentile
-        LowDlvl(:,j+opt.n*k-opt.n) = Dmin; %lower band
-        Dmin90 = prctile(cumsum(candidateirf_wold(:,j+opt.n*k-opt.n,:),1),(100-conf_large)/2,3); %16th percentile
-        LowD90lvl(:,j+opt.n*k-opt.n) = Dmin90; %lower band
-        Dmiddle=prctile(cumsum(candidateirf_wold(:,j+opt.n*k-opt.n,:),1),50,3); %50th percentile
-        MiddleDlvl(:,j+opt.n*k-opt.n) = Dmiddle; %lower band
-        Dmax = prctile(cumsum(candidateirf_wold(:,j+opt.n*k-opt.n,:),1),(100+conf_narrow)/2,3); %84th percentile
-        HighDlvl(:,j+opt.n*k-opt.n) = Dmax; %upper band
-        Dmax90 = prctile(cumsum(candidateirf_wold(:,j+opt.n*k-opt.n,:),1),(100+conf_large)/2,3); %84th percentile
-        HighD90lvl(:,j+opt.n*k-opt.n) = Dmax90; %upper band
- end
-end
-
-% Plot the IRFs:
-
-
-%VARnames_var={'Government Spending';'News Variable';'GDP';'10-year Treasury Yield';'Federal Surplus';'Real Exchange Rate';'Stock Prices';'Fed Funds Rate';'CPI Inflation';'Consumption Inequality'};
-
-Shocknames={'Anticipated government spending shock';'Unanticipated government spending shock'};
-
-colorBNDS90=[0 0 1];
-colorBNDS=[0 0 1];
-
-% Plotting the IRFs for all the variables to anticipated and unanticipated government spending shocks
-%irf_plot(opt.n,opt.q,opt.hor,MiddleD,HighD,LowD,VARnames,colorBNDS)
-%irf_plot_inequality(opt.n,opt.q,opt.hor,MiddleD,HighD,LowD,VARnames,colorBNDS)
-irf_plot_var(opt.n,opt.q,opt.hor,MiddleD,HighD,LowD,VARnames,colorBNDS)
-
-
-% names_percentiles={'Government Spending';'News';'GDP'};
-% irf_plot_percentiles(n,q,hor,MiddleD,HighD,LowD,names_percentiles,colorBNDS)
-
-% %% median_news_shock = zeros(149,1);
-% 
-% for i=1:149 
-%     median_news_shock(i) = prctile(eta(i,2,:),50); 
-% end
-% 
-% h=transpose(1982.75:0.25:2019.75);
-% 
-% figure; 
-% plot(h,median_news_shock,'k'); 
-% hold on 
-% xline(1986)
-% text(1986,-3,'(1)','Color','red',FontSize=30) 
-% hold on 
-% xline(1989.75)
-% text(1989.75,-2,'(2)','Color','red',FontSize=30) 
-% hold on 
-% xline(2001.75)
-% text(2001.75,2,'(3)','Color','blue',FontSize=30) 
-% hold on 
-% xline(2009)
-% text(2009,2,'(4)','Color','blue',FontSize=30) 
-% set(gca,'FontSize',42) 
-% axis tight
-% 
-% for i=1:149 
-%     surprise_news_shock(i) = prctile(eta(i,1,:),50); 
-% end
-% 
-% h=transpose(1982.75:0.25:2019.75);
-% 
-% figure; 
-% plot(h,surprise_news_shock,'k'); 
-% hold on 
-% % xline(1986)
-% % text(1986,-3,'(1)','Color','red',FontSize=30) 
-% % hold on 
-% xline(1983.75)
-% text(1983.75,-2.5,'(1)','Color','red',FontSize=30) 
-% hold on 
-% xline(1994.5)
-% text(1994.5,2.5,'(2)','Color','blue',FontSize=30) 
-% hold on 
-% xline(1999.75)
-% text(1999.75,2,'(2)','Color','blue',FontSize=30) 
-% set(gca,'FontSize',42) 
-% axis tight
+fprintf('FAVAR complete.\n');
