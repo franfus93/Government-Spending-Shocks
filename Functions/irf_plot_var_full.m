@@ -1,61 +1,75 @@
-function irf_plot_var_full(n,q,hor,MiddleIRF,HighIRF,LowIRF,HighIRF_large,LowIRF_large,VARnames,colorBNDS)
+function irf_plot_var_full(n, q, hor, MiddleIRF, HighIRF, LowIRF, ...
+                           HighIRF_large, LowIRF_large, VARnames, colorBNDS)
+% IRF_PLOT_VAR_FULL  Plot IRFs for all q variables to two shocks.
+%
+%  Creates TWO figures:
+%    Figure 1 (first created)  – responses to SHOCK 1 = SURPRISE shock
+%    Figure 2 (second created) – responses to SHOCK 2 = NEWS shock
+%
+%  Layout: subplot(4,3) – supports up to 12 variables (10 used here).
+%
+%  INPUTS
+%   n           – total number of VAR variables (n × n IRF matrix)
+%   q           – number of variables to display (≤ n)
+%   hor         – IRF horizon
+%   MiddleIRF   – (hor × n²) posterior median
+%   HighIRF     – (hor × n²) upper 68% band
+%   LowIRF      – (hor × n²) lower 68% band
+%   HighIRF_large – (hor × n²) upper 90% band (currently unused)
+%   LowIRF_large  – (hor × n²) lower 90% band (currently unused)
+%   VARnames    – (q × 1) cell array of variable labels (LaTeX OK)
+%   colorBNDS   – fill colour (1 × 3 RGB, e.g. [0 0 1])
+%
+%  Column convention: col = shock + n*(variable-1)
+%    shock 1 = surprise (unanticipated)   → Figure 1
+%    shock 2 = news     (anticipated)     → Figure 2
 
-plot_indices = [1, 2:q]; % Skip variable 2, include variables 1, 3, 4, 5, 6
+plot_indices = 1:q;   % plot all q variables
 
+%% ── Figure 1: SURPRISE shock (shock 1) ──────────────────────────────────
 figure;
-for i = 1:q % Now we have 5 plots per row
-    
-    
-    k = plot_indices(i); % Get the actual variable index
+for i = 1:q
+    k = plot_indices(i);
+    col = 1 + n*(k-1);   % shock 1, variable k
 
-
-     % -------- Shock 2 (first row - News shock) --------
-    subplot(4,3,i) % first row of plots, 5 columns
-    set(gca,'FontSize',8,'FontName','Times')  
-    fill([0:hor-1 fliplr(0:hor-1)]' ,[HighIRF(:,1+n*k-n); flipud(LowIRF(:,1+n*k-n))],...
-    colorBNDS,'EdgeColor','k'); hold on;
-    % fill([0:hor-1 fliplr(0:hor-1)]' ,[HighIRF_large(:,1+n*k-n); flipud(LowIRF_large(:,1+n*k-n))],...
-    % colorBNDS,'EdgeColor','k'); hold on;
-    alpha(.20)
-    plot(0:hor-1,MiddleIRF(:,1+n*k-n),'LineWidth',1.5,'Color','k','LineStyle','-.'); hold on;
+    subplot(4, 3, i);
+    set(gca, 'FontSize', 8, 'FontName', 'Times');
+    fill([0:hor-1, fliplr(0:hor-1)]', ...
+         [HighIRF(:,col); flipud(LowIRF(:,col))], ...
+         colorBNDS, 'EdgeColor', 'k');
+    alpha(0.20); hold on;
+    plot(0:hor-1, MiddleIRF(:,col), 'LineWidth', 1.5, 'Color', 'k', 'LineStyle', '-.');
     xlim([0 hor-1]);
-    line(get(gca,'xlim'),[0 0],'Color',[1 0 0],'LineStyle','-','LineWidth',1); hold off;
+    line(get(gca,'xlim'), [0 0], 'Color', [1 0 0], 'LineStyle', '-', 'LineWidth', 1);
+    hold off;
     ax = gca;
-    xlabel(ax, VARnames{k}, 'FontSize', 20,'FontName','Times', 'Interpreter', 'latex');  % bigger label
-    ax.XAxis.FontSize = 20;  
-    axis tight
-    ytickformat('%.1f')   % <<< NEW: format y-axis labels to 1 decimal
-% -------- Titles above subplots --------
-    axes('Position',[0.265 0.9 0.5 0.15],'Visible','off');
-    % text(0.5,0.5,'(a) Surprise shock','HorizontalAlignment','center','FontSize',26,'FontWeight','bold');
-
+    xlabel(ax, VARnames{k}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
+    ax.XAxis.FontSize = 12;
+    ax.YAxis.FontSize = 12;
+    axis tight;
+    ytickformat('%.2f');
 end
-     
- figure;
-for i = 1:q% Now we have 5 plots per row
 
-     k = plot_indices(i); % Get the actual variable index
+%% ── Figure 2: NEWS shock (shock 2) ───────────────────────────────────────
+figure;
+for i = 1:q
+    k = plot_indices(i);
+    col = 2 + n*(k-1);   % shock 2, variable k
 
-      % -------- Shock 1 (second row - Surprise shock) --------
-    subplot(4,3,i) % second row of plots, 5 columns
-    set(gca,'FontSize',8,'FontName','Times') 
-    fill([0:hor-1 fliplr(0:hor-1)]' ,[HighIRF(:,2+n*k-n); flipud(LowIRF(:,2+n*k-n))],...
-    colorBNDS,'EdgeColor','k'); hold on;
-    % fill([0:hor-1 fliplr(0:hor-1)]' ,[HighIRF_large(:,2+n*k-n); flipud(LowIRF_large(:,2+n*k-n))],...
-    % colorBNDS,'EdgeColor','k'); hold on;
-     alpha(.20)
-    plot(0:hor-1,MiddleIRF(:,2+n*k-n),'LineWidth',1.5,'Color','k','LineStyle','-.'); hold on;
+    subplot(4, 3, i);
+    set(gca, 'FontSize', 8, 'FontName', 'Times');
+    fill([0:hor-1, fliplr(0:hor-1)]', ...
+         [HighIRF(:,col); flipud(LowIRF(:,col))], ...
+         colorBNDS, 'EdgeColor', 'k');
+    alpha(0.20); hold on;
+    plot(0:hor-1, MiddleIRF(:,col), 'LineWidth', 1.5, 'Color', 'k', 'LineStyle', '-.');
     xlim([0 hor-1]);
-    line(get(gca,'xlim'),[0 0],'Color',[1 0 0],'LineStyle','-','LineWidth',1); hold off;
+    line(get(gca,'xlim'), [0 0], 'Color', [1 0 0], 'LineStyle', '-', 'LineWidth', 1);
+    hold off;
     ax = gca;
-    xlabel(ax, VARnames{k}, 'FontSize', 20,'FontName','Times', 'Interpreter', 'latex');  % bigger label
-    ax.XAxis.FontSize = 20;  
-    ax.YAxis.FontSize = 20;  % tick labels bigger
-    ytickformat('%.1f')   % <<< NEW: format y-axis labels to 1 decimal
-
-
-    axes('Position',[0.265 0.9 0.5 0.15],'Visible','off');
-    % text(0.5,0.5,'(b) News shock','HorizontalAlignment','center','FontSize',26,'FontWeight','bold');
-
-end 
-  
+    xlabel(ax, VARnames{k}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
+    ax.XAxis.FontSize = 12;
+    ax.YAxis.FontSize = 12;
+    axis tight;
+    ytickformat('%.2f');
+end
