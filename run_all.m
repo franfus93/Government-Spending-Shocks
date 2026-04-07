@@ -91,7 +91,7 @@ CCI      = data(idx_s:idx_e, 23).CSCICP03USM665S; % Consumer confidence
 %  Inequality measures
 C_SD   = data(idx_s:idx_e, 11).C_SD_LNCONS_SA;    % Std-dev (MAIN)
 C_9010 = data(idx_s:idx_e, 12).C_9010_LNCONS_SA;  % 90-10 range
-GINI   = data(idx_s:idx_e, 15).GINI_COEFFICIENT;  % Gini coefficient
+GINI   = data(idx_s:idx_e, 15).GINI;              % Gini coefficient
 
 %% ════════════════════════════════════════════════════════════════════════
 %  2.  FACTORS FROM FRED-QD
