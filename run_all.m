@@ -125,17 +125,34 @@ opt_b.q = opt_b.n;   % q = n for pure VAR (no latent factors)
 [LowD_b, MidD_b, HighD_b, LowD90_b, HighD90_b] = ...
     compute_conf_bands(irf_b, opt_b.n, opt_b.hor, 68, 90);
 
-% --- Figure 1 (surprise) & Figure 2 (news) -------------------------------
+% --- Figure 1 (surprise) & Figure 2 (news) – main 2×3 subset -------------
+% Variables shown: G(1), Ft(1,4)(2), GDP(3), Bond(5), C_SD(10)
 fprintf('  → Figure 1 & Figure 2\n');
+main_vars  = [1, 2, 3, 5, 10];
+VARnames_main = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
+                 'Bond Yield'; 'Consumption Inequality'};
+
+close all;
+irf_plot_main(opt_b.n, main_vars, opt_b.hor, ...
+              MidD_b, HighD_b, LowD_b, HighD90_b, LowD90_b, ...
+              VARnames_main, colorB);
+
+figs = findall(0, 'Type', 'figure');
+[~, ord] = sort([figs.Number]); figs = figs(ord);
+save_fig(figs(1), fig_dir, 'Figure1');   % surprise (first created)
+save_fig(figs(2), fig_dir, 'Figure2');   % news     (second created)
+
+% --- Appendix: full IRF grid (all 10 variables) ---------------------------
+fprintf('  → Appendix full IRF grids\n');
 close all;
 irf_plot_var_full(opt_b.n, opt_b.n, opt_b.hor, ...
                   MidD_b, HighD_b, LowD_b, HighD90_b, LowD90_b, ...
                   VARnames_base, colorB);
 
 figs = findall(0, 'Type', 'figure');
-[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
-save_fig(figs(1), fig_dir, 'Figure1');   % surprise (first created)
-save_fig(figs(2), fig_dir, 'Figure2');   % news     (second created)
+[~, ord] = sort([figs.Number]); figs = figs(ord);
+save_fig(figs(1), fig_dir, 'FigureApp_SurpriseFullGrid');   % surprise
+save_fig(figs(2), fig_dir, 'FigureApp_NewsFullGrid');        % news
 
 %% ════════════════════════════════════════════════════════════════════════
 %  4.  TABLE B.3 – INFORMATIONAL SUFFICIENCY, MEDIUM-SCALE VAR
