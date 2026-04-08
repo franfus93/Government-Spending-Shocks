@@ -261,33 +261,36 @@ save_fig(gcf, fig_dir, 'FigureD13');
 %% ── Table E.4: Small-scale VAR (4 variables) ─────────────────────────────
 fprintf('\n=== [Table E.4] Small-scale VAR sufficiency test ===\n');
 
-% 4 variables: G, GDP, Federal Surplus, Bond Yield  (no Ft(1,4), c=0 as in FG2016)
-small_var   = [G, Y, SUR, BONDY];
+% 5 variables: G, GDP, Surplus, Bond, C_SD  (no Ft(1,4))
+small_var   = [G, Y, SUR, BONDY, C_SD];
 opt_sm      = BASE;
 opt_sm.c    = 0;                       % factors demeaned; no intercept
-opt_sm.q    = size(small_var, 2);      % = 4
+opt_sm.q    = size(small_var, 2);      % = 5
 [opt_sm.T, ~] = size(small_var);
 
 pval_surp_E4 = check_orthogonality(small_var, factor, opt_sm);
-save_sufficiency_table(pval_surp_E4, min(7, size(factor,2)), ...
+save_sufficiency_table(pval_surp_E4, size(factor, 2), ...
     'E.4', fullfile(tab_dir, 'TableE4.txt'));
 
 %% ── Table E.5: FAVAR (small-scale + 5 PCs) ──────────────────────────────
 fprintf('\n=== [Table E.5] FAVAR sufficiency test ===\n');
 
-% FAVAR variables: G, Ft(1,4), GDP, Surplus, Bond, C_SD, + first 5 PCs
+% FAVAR variables (for IRF estimation): G, Ft(1,4), GDP, Surplus, Bond, C_SD, + 5 PCs
 macro_favar   = [G, F, Y, SUR, BONDY, C_SD];
 n_mac_favar   = size(macro_favar, 2);   % = 6
-favar_data    = [macro_favar, factor(:, 1:5)];
+favar_data    = [macro_favar, factor(:, 1:5)];   % 11 vars (includes Ft(1,4))
 
 opt_fav                = BASE;
 opt_fav.c              = 0;            % no intercept (factors demeaned)
 opt_fav.q              = size(favar_data, 2);   % = 11
 [opt_fav.T, opt_fav.n] = size(favar_data);
 
-% Test against all 9 PCs (consistent with reference: full factor set)
-pval_surp_E5 = check_orthogonality(favar_data, factor, opt_fav);
-save_sufficiency_table(pval_surp_E5, min(7, size(factor,2)), ...
+% Orthogonality test: exclude Ft(1,4), keep C_SD → [G, GDP, Sur, Bond, C_SD, PC1-5]
+favar_orth    = [[G, Y, SUR, BONDY, C_SD], factor(:, 1:5)];
+opt_fav_orth  = opt_fav;
+opt_fav_orth.q = size(favar_orth, 2);   % = 10
+pval_surp_E5 = check_orthogonality(favar_orth, factor, opt_fav_orth);
+save_sufficiency_table(pval_surp_E5, size(factor, 2), ...
     'E.5', fullfile(tab_dir, 'TableE5.txt'));
 
 %% ── Figures E.14 & E.15: FAVAR IRFs ─────────────────────────────────────
