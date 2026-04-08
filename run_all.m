@@ -332,6 +332,8 @@ save_fig(figs(2), fig_dir, 'FigureE15');   % news     (second created)
 %  10.  SAVE RESULTS
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('\n=== Saving workspace to Results_all.mat ===\n');
+close all;             % close all figures before saving
+clear figs ord;        % remove any lingering graphics handles from workspace
 save(fullfile(root_dir, 'Results_all.mat'));
 
 fprintf('\n╔═══════════════════════════════════════╗\n');
