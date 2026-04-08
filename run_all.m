@@ -132,27 +132,25 @@ main_vars  = [1, 2, 3, 5, 10];
 VARnames_main = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
                  'Bond Yield'; 'Consumption Inequality'};
 
-close all;
 irf_plot_main(opt_b.n, main_vars, opt_b.hor, ...
               MidD_b, HighD_b, LowD_b, HighD90_b, LowD90_b, ...
               VARnames_main, colorB);
 
-figs = findall(0, 'Type', 'figure');
-[~, ord] = sort([figs.Number]); figs = figs(ord);
-save_fig(figs(1), fig_dir, 'Figure1');   % surprise (first created)
-save_fig(figs(2), fig_dir, 'Figure2');   % news     (second created)
+all_figs = findall(0, 'Type', 'figure');
+[~, ord] = sort([all_figs.Number]); all_figs = all_figs(ord);
+save_fig(all_figs(end-1), fig_dir, 'Figure1');   % surprise (first of new pair)
+save_fig(all_figs(end),   fig_dir, 'Figure2');   % news     (second of new pair)
 
 % --- Appendix: full IRF grid (all 10 variables) ---------------------------
 fprintf('  → Appendix full IRF grids\n');
-close all;
 irf_plot_var_full(opt_b.n, opt_b.n, opt_b.hor, ...
                   MidD_b, HighD_b, LowD_b, HighD90_b, LowD90_b, ...
                   VARnames_base, colorB);
 
-figs = findall(0, 'Type', 'figure');
-[~, ord] = sort([figs.Number]); figs = figs(ord);
-save_fig(figs(1), fig_dir, 'FigureApp_SurpriseFullGrid');   % surprise
-save_fig(figs(2), fig_dir, 'FigureApp_NewsFullGrid');        % news
+all_figs = findall(0, 'Type', 'figure');
+[~, ord] = sort([all_figs.Number]); all_figs = all_figs(ord);
+save_fig(all_figs(end-1), fig_dir, 'FigureApp_SurpriseFullGrid');
+save_fig(all_figs(end),   fig_dir, 'FigureApp_NewsFullGrid');
 
 %% ════════════════════════════════════════════════════════════════════════
 %  4.  TABLE B.3 – INFORMATIONAL SUFFICIENCY, MEDIUM-SCALE VAR
@@ -180,13 +178,12 @@ fprintf('\n=== [Figures C.7 & C.8] Shock series ===\n');
 
 % After p=4 lags, first usable obs = 1981Q4 + 4Q = 1982Q4 = 1982.75
 start_year_shock = 1982.75;
-close all;
 get_shocks(vardata_base, eta_b, opt_b.p, start_year_shock);
 
-figs = findall(0, 'Type', 'figure');
-[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
-save_fig(figs(1), fig_dir, 'FigureC7');   % surprise shock (first created)
-save_fig(figs(2), fig_dir, 'FigureC8');   % news shock    (second created)
+all_figs = findall(0, 'Type', 'figure');
+[~, ord] = sort([all_figs.Number]); all_figs = all_figs(ord);
+save_fig(all_figs(end-1), fig_dir, 'FigureC7');   % surprise shock
+save_fig(all_figs(end),   fig_dir, 'FigureC8');   % news shock
 
 %% ════════════════════════════════════════════════════════════════════════
 %  6.  APPENDIX D.1 – nt(1,4) ROBUSTNESS
@@ -205,13 +202,12 @@ opt_N      = opt_b;
 [LowD_N, MidD_N, HighD_N] = compute_conf_bands(irf_N, opt_N.n, opt_N.hor, 68, 90);
 
 % Generate both figures, keep only the news figure
-close all;
 irf_plot_var_full(opt_N.n, opt_N.n, opt_N.hor, ...
                   MidD_N, HighD_N, LowD_N, HighD_N, LowD_N, VARnames_N, colorB);
-figs = findall(0, 'Type', 'figure');
-[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
-close(figs(1));                          % discard surprise figure (first created)
-save_fig(figs(2), fig_dir, 'FigureD9'); % keep news figure (second created)
+all_figs = findall(0, 'Type', 'figure');
+[~, ord] = sort([all_figs.Number]); all_figs = all_figs(ord);
+close(all_figs(end-1));                          % discard surprise
+save_fig(all_figs(end), fig_dir, 'FigureD9');   % keep news
 
 %% ════════════════════════════════════════════════════════════════════════
 %  7.  APPENDIX D.2 – GINI COEFFICIENT ROBUSTNESS
@@ -229,14 +225,12 @@ opt_Gi = opt_b;
 [LowD_Gi, MidD_Gi, HighD_Gi] = compute_conf_bands(irf_Gi, opt_Gi.n, opt_Gi.hor, 68, 90);
 
 % Figure D.10 – surprise shock, Gini only
-close all;
 plot_ineq_one_shock(opt_Gi.n, opt_Gi.n, opt_Gi.hor, ...
     MidD_Gi, HighD_Gi, LowD_Gi, 1, colorB, ...
     'Gini: Surprise shock');
 save_fig(gcf, fig_dir, 'FigureD10');
 
 % Figure D.11 – news shock, Gini only
-close all;
 plot_ineq_one_shock(opt_Gi.n, opt_Gi.n, opt_Gi.hor, ...
     MidD_Gi, HighD_Gi, LowD_Gi, 2, colorB, ...
     'Gini: News shock');
@@ -258,14 +252,12 @@ opt_90 = opt_b;
 [LowD_90, MidD_90, HighD_90] = compute_conf_bands(irf_90, opt_90.n, opt_90.hor, 68, 90);
 
 % Figure D.12 – surprise
-close all;
 plot_ineq_one_shock(opt_90.n, opt_90.n, opt_90.hor, ...
     MidD_90, HighD_90, LowD_90, 1, colorB, ...
     '90-10 Range: Surprise shock');
 save_fig(gcf, fig_dir, 'FigureD12');
 
 % Figure D.13 – news
-close all;
 plot_ineq_one_shock(opt_90.n, opt_90.n, opt_90.hor, ...
     MidD_90, HighD_90, LowD_90, 2, colorB, ...
     '90-10 Range: News shock');
@@ -319,21 +311,19 @@ VARnames_favar = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
 [irf_fav, ~, ~, ~, ~, ~] = bvar_estimate(favar_data, opt_fav);
 [LowD_f, MidD_f, HighD_f] = compute_conf_bands(irf_fav, opt_fav.n, opt_fav.hor, 68, 90);
 
-close all;
 irf_plot_var(opt_fav.n, n_mac_favar, opt_fav.hor, ...
              MidD_f, HighD_f, LowD_f, VARnames_favar, colorB);
 
-figs = findall(0, 'Type', 'figure');
-[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
-save_fig(figs(1), fig_dir, 'FigureE14');   % surprise (first created)
-save_fig(figs(2), fig_dir, 'FigureE15');   % news     (second created)
+all_figs = findall(0, 'Type', 'figure');
+[~, ord] = sort([all_figs.Number]); all_figs = all_figs(ord);
+save_fig(all_figs(end-1), fig_dir, 'FigureE14');   % surprise
+save_fig(all_figs(end),   fig_dir, 'FigureE15');   % news
 
 %% ════════════════════════════════════════════════════════════════════════
 %  10.  SAVE RESULTS
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('\n=== Saving workspace to Results_all.mat ===\n');
-close all;             % close all figures before saving
-clear figs ord;        % remove any lingering graphics handles from workspace
+clear all_figs ord;    % remove graphics handles from workspace before saving
 save(fullfile(root_dir, 'Results_all.mat'));
 
 fprintf('\n╔═══════════════════════════════════════╗\n');
