@@ -138,11 +138,18 @@ save_fig(figs(2), fig_dir, 'Figure2');   % news     (second figure created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  4.  TABLE B.3 – INFORMATIONAL SUFFICIENCY, MEDIUM-SCALE VAR
+%      Shocks extracted from 9-variable VAR (8 macro + Ft(1,4)),
+%      EXCLUDING consumption inequality (the outcome variable).
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('\n=== [Table B.3] Informational sufficiency ===\n');
 
-opt_b3 = opt_b;
-[pval_surp_B3, pval_news_B3] = check_orthogonality(vardata_base, factor, opt_b3);
+% 9 variables for orthogonality test (drop C_SD from the system)
+vardata_orth = [G, F, Y, SUR, BONDY, RER, CP, FFR, CCI];
+
+opt_b3   = opt_b;
+opt_b3.q = size(vardata_orth, 2);   % = 9
+
+[pval_surp_B3, pval_news_B3] = check_orthogonality(vardata_orth, factor, opt_b3);
 n_pc_B3 = min(7, size(factor, 2));
 save_sufficiency_table(pval_surp_B3, pval_news_B3, n_pc_B3, ...
     'B.3', fullfile(tab_dir, 'TableB3.txt'));
