@@ -36,17 +36,11 @@ for shock = 1:2
         subplot(2, 3, i);
         set(gca, 'FontSize', 10, 'FontName', 'Times');
 
-        % 90% band (lighter)
-        fill([0:hor-1, fliplr(0:hor-1)]', ...
-             [HighIRF_large(:,col); flipud(LowIRF_large(:,col))], ...
-             colorBNDS, 'EdgeColor', 'none');
-        alpha(0.12); hold on;
-
-        % 68% band (darker)
+        % 68% band
         fill([0:hor-1, fliplr(0:hor-1)]', ...
              [HighIRF(:,col); flipud(LowIRF(:,col))], ...
              colorBNDS, 'EdgeColor', 'k');
-        alpha(0.25);
+        alpha(0.20); hold on;
 
         % Median
         plot(0:hor-1, MiddleIRF(:,col), 'k-.', 'LineWidth', 2);
