@@ -111,13 +111,13 @@ def transform_data(x2, DEMEAN):
         return x2 - mu, mu, sd
     elif DEMEAN == 2:
         mu = np.tile(np.mean(x2, axis=0), (T, 1))
-        sd = np.tile(np.std(x2, axis=0, ddof=0), (T, 1))
+        sd = np.tile(np.std(x2, axis=0, ddof=1), (T, 1))
         return (x2 - mu) / sd, mu, sd
     elif DEMEAN == 3:
         mu = np.full_like(x2, np.nan)
         for t in range(T):
             mu[t, :] = np.mean(x2[: t + 1, :], axis=0)
-        sd = np.tile(np.std(x2, axis=0, ddof=0), (T, 1))
+        sd = np.tile(np.std(x2, axis=0, ddof=1), (T, 1))
         return (x2 - mu) / sd, mu, sd
 
 
@@ -128,6 +128,58 @@ def pc2(X, nfac):
     lam = U[:, :nfac] * np.sqrt(N)
     fhat = X @ lam / N
     return fhat, lam, S
+
+
+def baing(X, r, jj):
+    """Select number of factors via information criterion (matches MATLAB baing).
+
+    Returns ic1 (selected number of factors) and Fhat (T x r factor matrix).
+    """
+    T, N = X.shape
+    NT = N * T
+    NT1 = N + T
+    GCT = min(N, T)
+
+    # Penalty term for each possible number of factors (1..r)
+    ii = np.arange(1, r + 1, dtype=float)
+    if jj == 1:
+        CT = np.log(NT / NT1) * ii * NT1 / NT
+    elif jj == 2:
+        CT = (NT1 / NT) * np.log(GCT) * ii
+    elif jj == 3:
+        CT = ii * np.log(GCT) / GCT
+
+    # SVD
+    if T < N:
+        ev_mat, eigval_mat, _ = np.linalg.svd(X @ X.T, full_matrices=False)
+        Fhat0 = np.sqrt(T) * ev_mat
+        Lambda0 = X.T @ Fhat0 / T
+    else:
+        ev_mat, eigval_mat, _ = np.linalg.svd(X.T @ X, full_matrices=False)
+        Lambda0 = np.sqrt(N) * ev_mat
+        Fhat0 = X @ Lambda0 / N
+
+    # Evaluate IC for each number of factors
+    Sigma = np.zeros(r + 1)
+    IC1 = np.zeros(r + 1)
+    for i in range(r, 0, -1):
+        Fhat_i = Fhat0[:, :i]
+        lam_i = Lambda0[:, :i]
+        chat_i = Fhat_i @ lam_i.T
+        ehat_i = X - chat_i
+        Sigma[i - 1] = np.mean(np.sum(ehat_i * ehat_i / T, axis=0))
+        IC1[i - 1] = np.log(Sigma[i - 1]) + CT[i - 1]
+
+    # No-factor case
+    Sigma[r] = np.mean(np.sum(X * X / T, axis=0))
+    IC1[r] = np.log(Sigma[r])
+
+    # Select number that minimizes IC
+    ic1 = np.argmin(IC1) + 1  # 1-indexed count
+    if ic1 > r:
+        ic1 = 0
+
+    return ic1
 
 
 def factors_em(x, kmax, jj=2, DEMEAN=2, maxit=50):
@@ -142,7 +194,11 @@ def factors_em(x, kmax, jj=2, DEMEAN=2, maxit=50):
         x2[np.isnan(x2[:, j]), j] = col_mean[j]
 
     x3, mut, sdt = transform_data(x2, DEMEAN)
-    fhat, lam, _ = pc2(x3, kmax)
+
+    # Initial IC selection
+    icstar = kmax
+
+    fhat, lam, _ = pc2(x3, icstar)
     chat0 = fhat @ lam.T
     err = 999.0
     it = 0
@@ -159,12 +215,18 @@ def factors_em(x, kmax, jj=2, DEMEAN=2, maxit=50):
                     x2[t, j] = x[t, j]
 
         x3, mut, sdt = transform_data(x2, DEMEAN)
-        fhat, lam, _ = pc2(x3, kmax)
+
+        # IC-based factor selection (matches MATLAB baing call)
+        icstar = baing(x3, kmax, jj)
+        if icstar == 0:
+            icstar = kmax  # fallback
+
+        fhat, lam, _ = pc2(x3, icstar)
         chat = fhat @ lam.T
         diff = chat - chat0
         err = np.sum(diff ** 2) / np.sum(chat0 ** 2)
         chat0 = chat
-        print(f"  EM iteration {it}: err={err:.8f}, nfac={kmax}")
+        print(f"  EM iteration {it}: err={err:.8f}, nfac={icstar}")
 
     return fhat
 
