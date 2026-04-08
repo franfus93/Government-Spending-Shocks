@@ -41,7 +41,7 @@ for i = 1:drawfin
     stable = -1;
     while stable < 0
         [PI(:,:,i), BigA(:,:,i), Sigma(:,:,i), errornorm(:,:,i), ~] = ...
-            BVAR_jeffrey(vardata, p, c, t, n);
+            BVAR_niw(vardata, p, c, t, n);
         if all(abs(eig(BigA(:,:,i))) < 1)
             stable = 1;
         end

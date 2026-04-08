@@ -13,7 +13,7 @@
 %    9  Consumer Confidence
 %   10  Consumption Inequality (cross-sectional std-dev)
 %
-%  Estimation: Bayesian VAR(4) with Jeffreys (diffuse) priors
+%  Estimation: Bayesian VAR(4) with Normal-Inverse-Wishart (NIW) priors
 %              4 lags, intercept, 5 000 posterior draws
 %  Sample:     1981:Q4 – 2019:Q4
 %
@@ -71,7 +71,7 @@ VARnames = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
 [opt.T, opt.n] = size(vardata);
 opt.q = opt.n;   % pure VAR: no latent factors
 
-%% ── 4. BVAR estimation (Jeffreys priors) ─────────────────────────────────
+%% ── 4. BVAR estimation (NIW priors) ──────────────────────────────────────
 fprintf('Estimating baseline VAR (%d draws)...\n', opt.drawfin);
 
 PI         = zeros(opt.n*opt.p + opt.c + opt.t, opt.n, opt.drawfin);
@@ -85,7 +85,7 @@ for i = 1:opt.drawfin
     while stable < 0
         [PI(:,:,i), BigA(:,:,i), Sigma(:,:,i), ...
          errornorm(:,:,i), fittednorm(:,:,i)] = ...
-            BVAR_jeffrey(vardata, opt.p, opt.c, opt.t, opt.n);
+            BVAR_niw(vardata, opt.p, opt.c, opt.t, opt.n);
         if all(abs(eig(BigA(:,:,i))) < 1)
             stable = 1;
         end
