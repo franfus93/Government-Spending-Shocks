@@ -254,13 +254,14 @@ save_fig(gcf, fig_dir, 'FigureD13');
 %  9.  APPENDIX E – FAVAR
 %% ════════════════════════════════════════════════════════════════════════
 
-%% ── Table E.4: Small-scale VAR (5 variables) ─────────────────────────────
+%% ── Table E.4: Small-scale VAR (4 variables) ─────────────────────────────
 fprintf('\n=== [Table E.4] Small-scale VAR sufficiency test ===\n');
 
-% 5 variables: G, Ft(1,4), GDP, Federal Surplus, Bond Yield
-small_var   = [G, F, Y, SUR, BONDY];
+% 4 variables: G, GDP, Federal Surplus, Bond Yield  (no Ft(1,4), c=0 as in FG2016)
+small_var   = [G, Y, SUR, BONDY];
 opt_sm      = BASE;
-opt_sm.q    = size(small_var, 2);   % = 5
+opt_sm.c    = 0;                       % factors demeaned; no intercept
+opt_sm.q    = size(small_var, 2);      % = 4
 [opt_sm.T, ~] = size(small_var);
 
 pval_surp_E4 = check_orthogonality(small_var, factor, opt_sm);
@@ -274,15 +275,15 @@ fprintf('\n=== [Table E.5] FAVAR sufficiency test ===\n');
 macro_favar   = [G, F, Y, SUR, BONDY, C_SD];
 n_mac_favar   = size(macro_favar, 2);   % = 6
 favar_data    = [macro_favar, factor(:, 1:5)];
-remain_factor = factor(:, 6:7);         % factors NOT included in FAVAR
 
 opt_fav                = BASE;
 opt_fav.c              = 0;            % no intercept (factors demeaned)
 opt_fav.q              = size(favar_data, 2);   % = 11
 [opt_fav.T, opt_fav.n] = size(favar_data);
 
-pval_surp_E5 = check_orthogonality(favar_data, remain_factor, opt_fav);
-save_sufficiency_table(pval_surp_E5, size(remain_factor, 2), ...
+% Test against all 9 PCs (consistent with reference: full factor set)
+pval_surp_E5 = check_orthogonality(favar_data, factor, opt_fav);
+save_sufficiency_table(pval_surp_E5, min(7, size(factor,2)), ...
     'E.5', fullfile(tab_dir, 'TableE5.txt'));
 
 %% ── Figures E.14 & E.15: FAVAR IRFs ─────────────────────────────────────
