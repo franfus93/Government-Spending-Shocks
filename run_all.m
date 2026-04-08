@@ -97,7 +97,7 @@ GINI   = data(idx_s:idx_e, 15).GINI;              % Gini coefficient
 %  2.  FACTORS FROM FRED-QD
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('=== Estimating factors from FRED-QD ===\n');
-factor = get_factors(9, start_sample, end_sample);   % up to 9 factors
+factor = get_factors(9, start_sample, end_sample);   % IC-optimal factors (up to 9)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  3.  BASELINE MEDIUM-SCALE VAR
@@ -133,8 +133,9 @@ irf_plot_var_full(opt_b.n, opt_b.n, opt_b.hor, ...
                   VARnames_base, colorB);
 
 figs = findall(0, 'Type', 'figure');
-save_fig(figs(1), fig_dir, 'Figure1');   % surprise (first figure created)
-save_fig(figs(2), fig_dir, 'Figure2');   % news     (second figure created)
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+save_fig(figs(1), fig_dir, 'Figure1');   % surprise (first created)
+save_fig(figs(2), fig_dir, 'Figure2');   % news     (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  4.  TABLE B.3 – INFORMATIONAL SUFFICIENCY, MEDIUM-SCALE VAR
@@ -143,14 +144,15 @@ save_fig(figs(2), fig_dir, 'Figure2');   % news     (second figure created)
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('\n=== [Table B.3] Informational sufficiency ===\n');
 
-% 9 variables for orthogonality test (no fiscal-news factor, includes C_SD)
-vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI, C_SD];
+% 8 macro variables: exclude fiscal-news variable (Ft(1,4)) and
+% consumption inequality (C_SD) — the outcome variable of interest
+vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI];
 
 opt_b3   = opt_b;
-opt_b3.q = size(vardata_orth, 2);   % = 9
+opt_b3.q = size(vardata_orth, 2);   % = 8
 
 pval_surp_B3 = check_orthogonality(vardata_orth, factor, opt_b3);
-n_pc_B3 = min(7, size(factor, 2));
+n_pc_B3 = size(factor, 2);
 save_sufficiency_table(pval_surp_B3, n_pc_B3, ...
     'B.3', fullfile(tab_dir, 'TableB3.txt'));
 
@@ -165,8 +167,9 @@ close all;
 get_shocks(vardata_base, eta_b, opt_b.p, start_year_shock);
 
 figs = findall(0, 'Type', 'figure');
-save_fig(figs(1), fig_dir, 'FigureC7');   % surprise shock (created first)
-save_fig(figs(2), fig_dir, 'FigureC8');   % news shock    (created second)
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+save_fig(figs(1), fig_dir, 'FigureC7');   % surprise shock (first created)
+save_fig(figs(2), fig_dir, 'FigureC8');   % news shock    (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  6.  APPENDIX D.1 – nt(1,4) ROBUSTNESS
@@ -189,8 +192,9 @@ close all;
 irf_plot_var_full(opt_N.n, opt_N.n, opt_N.hor, ...
                   MidD_N, HighD_N, LowD_N, HighD_N, LowD_N, VARnames_N, colorB);
 figs = findall(0, 'Type', 'figure');
-close(figs(1));                         % discard surprise figure
-save_fig(figs(2), fig_dir, 'FigureD9'); % keep news figure
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+close(figs(1));                          % discard surprise figure (first created)
+save_fig(figs(2), fig_dir, 'FigureD9'); % keep news figure (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  7.  APPENDIX D.2 – GINI COEFFICIENT ROBUSTNESS
@@ -254,13 +258,14 @@ save_fig(gcf, fig_dir, 'FigureD13');
 %  9.  APPENDIX E – FAVAR
 %% ════════════════════════════════════════════════════════════════════════
 
-%% ── Table E.4: Small-scale VAR (5 variables) ─────────────────────────────
+%% ── Table E.4: Small-scale VAR (4 variables) ─────────────────────────────
 fprintf('\n=== [Table E.4] Small-scale VAR sufficiency test ===\n');
 
-% 5 variables: G, Ft(1,4), GDP, Federal Surplus, Bond Yield
-small_var   = [G, F, Y, SUR, BONDY];
+% 4 variables: G, GDP, Federal Surplus, Bond Yield  (no Ft(1,4), c=0 as in FG2016)
+small_var   = [G, Y, SUR, BONDY];
 opt_sm      = BASE;
-opt_sm.q    = size(small_var, 2);   % = 5
+opt_sm.c    = 0;                       % factors demeaned; no intercept
+opt_sm.q    = size(small_var, 2);      % = 4
 [opt_sm.T, ~] = size(small_var);
 
 pval_surp_E4 = check_orthogonality(small_var, factor, opt_sm);
@@ -274,15 +279,15 @@ fprintf('\n=== [Table E.5] FAVAR sufficiency test ===\n');
 macro_favar   = [G, F, Y, SUR, BONDY, C_SD];
 n_mac_favar   = size(macro_favar, 2);   % = 6
 favar_data    = [macro_favar, factor(:, 1:5)];
-remain_factor = factor(:, 6:7);         % factors NOT included in FAVAR
 
 opt_fav                = BASE;
 opt_fav.c              = 0;            % no intercept (factors demeaned)
 opt_fav.q              = size(favar_data, 2);   % = 11
 [opt_fav.T, opt_fav.n] = size(favar_data);
 
-pval_surp_E5 = check_orthogonality(favar_data, remain_factor, opt_fav);
-save_sufficiency_table(pval_surp_E5, size(remain_factor, 2), ...
+% Test against all 9 PCs (consistent with reference: full factor set)
+pval_surp_E5 = check_orthogonality(favar_data, factor, opt_fav);
+save_sufficiency_table(pval_surp_E5, min(7, size(factor,2)), ...
     'E.5', fullfile(tab_dir, 'TableE5.txt'));
 
 %% ── Figures E.14 & E.15: FAVAR IRFs ─────────────────────────────────────
@@ -299,8 +304,9 @@ irf_plot_var(opt_fav.n, n_mac_favar, opt_fav.hor, ...
              MidD_f, HighD_f, LowD_f, VARnames_favar, colorB);
 
 figs = findall(0, 'Type', 'figure');
-save_fig(figs(1), fig_dir, 'FigureE14');   % surprise
-save_fig(figs(2), fig_dir, 'FigureE15');   % news
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+save_fig(figs(1), fig_dir, 'FigureE14');   % surprise (first created)
+save_fig(figs(2), fig_dir, 'FigureE15');   % news     (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  10.  SAVE RESULTS

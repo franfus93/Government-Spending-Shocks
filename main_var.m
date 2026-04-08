@@ -51,7 +51,7 @@ CP_REAL      = data(idx_start:idx_end, 35);   % Corporate profits (real)
 CCI          = data(idx_start:idx_end, 23);   % Consumer confidence
 
 %% ── 2. Model options ─────────────────────────────────────────────────────
-opt.r       = 9;     % max factors for get_factors
+opt.r       = 9;     % upper bound; IC (baing) selects the optimal count
 opt.p       = 4;     % VAR lags
 opt.c       = 1;     % include intercept
 opt.t       = 0;     % no deterministic trend
