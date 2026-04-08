@@ -34,7 +34,6 @@ for shock = 1:2
         col = shock + n*(k-1);
 
         subplot(2, 3, i);
-        set(gca, 'FontSize', 10, 'FontName', 'Times');
 
         % 68% band
         fill([0:hor-1, fliplr(0:hor-1)]', ...
@@ -42,16 +41,16 @@ for shock = 1:2
              colorBNDS, 'EdgeColor', 'k');
         alpha(0.20); hold on;
 
-        % Median
+        % Median and zero line
         plot(0:hor-1, MiddleIRF(:,col), 'k-.', 'LineWidth', 2);
-        line(get(gca,'xlim'), [0 0], 'Color', [1 0 0], 'LineStyle', '-', 'LineWidth', 1);
-        xlim([0 hor-1]);
+        yline(0, 'r-', 'LineWidth', 1);
+
         axis tight;
+        xlim([0 hor-1]);   % exact x range after tight y
+
+        set(gca, 'FontSize', 14, 'FontName', 'Times');
         ytickformat('%.2f');
-        xlabel(VARnames{i}, 'FontSize', 13, 'FontName', 'Times', 'Interpreter', 'latex');
-        ax = gca;
-        ax.XAxis.FontSize = 10;
-        ax.YAxis.FontSize = 10;
+        xlabel(VARnames{i}, 'FontSize', 16, 'FontName', 'Times', 'Interpreter', 'latex');
         hold off;
     end
 end
