@@ -97,7 +97,7 @@ GINI   = data(idx_s:idx_e, 15).GINI;              % Gini coefficient
 %  2.  FACTORS FROM FRED-QD
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('=== Estimating factors from FRED-QD ===\n');
-factor = get_factors(9, start_sample, end_sample);   % up to 9 factors
+factor = get_factors(9, start_sample, end_sample);   % IC-optimal factors (up to 9)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  3.  BASELINE MEDIUM-SCALE VAR
@@ -150,7 +150,7 @@ opt_b3   = opt_b;
 opt_b3.q = size(vardata_orth, 2);   % = 9
 
 pval_surp_B3 = check_orthogonality(vardata_orth, factor, opt_b3);
-n_pc_B3 = min(7, size(factor, 2));
+n_pc_B3 = size(factor, 2);
 save_sufficiency_table(pval_surp_B3, n_pc_B3, ...
     'B.3', fullfile(tab_dir, 'TableB3.txt'));
 

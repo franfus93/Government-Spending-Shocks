@@ -41,7 +41,7 @@ BONDY      = data(idx_start:idx_end,  9);   % 10-yr bond yield
 C_SD_LNCONS_SA = data(idx_start:idx_end, 11); % Consumption std-dev
 
 %% ── 2. Model options ─────────────────────────────────────────────────────
-opt.r       = 9;
+opt.r       = 9;   % upper bound; IC (baing) selects the optimal count
 opt.p       = 4;
 opt.c       = 0;     % no intercept (factors already demeaned)
 opt.t       = 0;
@@ -59,7 +59,7 @@ opt_small      = opt;                  % opt.c = 0 (factors demeaned)
 opt_small.q    = size(small_var, 2);   % = 4
 pval_surp_E4 = check_orthogonality(small_var, factor, opt_small);
 
-n_pc = min(7, size(factor, 2));
+n_pc = size(factor, 2);
 save_sufficiency_table(pval_surp_E4, n_pc, 'E.4', fullfile(tab_dir, 'TableE4.txt'));
 
 %% ── 5. Table E.5 – Informational sufficiency of the FAVAR ───────────────
