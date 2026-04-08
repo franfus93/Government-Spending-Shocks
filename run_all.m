@@ -144,12 +144,12 @@ save_fig(figs(2), fig_dir, 'Figure2');   % news     (second created)
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('\n=== [Table B.3] Informational sufficiency ===\n');
 
-% 8 macro variables: exclude fiscal-news variable (Ft(1,4)) and
-% consumption inequality (C_SD) — the outcome variable of interest
-vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI];
+% 9 macro variables: exclude fiscal-news variable (Ft(1,4)) only;
+% consumption inequality (C_SD) is included
+vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI, C_SD];
 
 opt_b3   = opt_b;
-opt_b3.q = size(vardata_orth, 2);   % = 8
+opt_b3.q = size(vardata_orth, 2);   % = 9
 
 pval_surp_B3 = check_orthogonality(vardata_orth, factor, opt_b3);
 n_pc_B3 = size(factor, 2);
