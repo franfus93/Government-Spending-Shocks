@@ -48,9 +48,9 @@ for shock = 1:2
         axis tight;
         xlim([0 hor-1]);   % exact x range after tight y
 
-        set(gca, 'FontSize', 14, 'FontName', 'Times');
+        set(gca, 'FontSize', 18, 'FontName', 'Times');
         ytickformat('%.2f');
-        xlabel(VARnames{i}, 'FontSize', 16, 'FontName', 'Times', 'Interpreter', 'latex');
+        xlabel(VARnames{i}, 'FontSize', 22, 'FontName', 'Times', 'Interpreter', 'latex');
         hold off;
     end
 end
