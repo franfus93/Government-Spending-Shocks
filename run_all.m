@@ -149,9 +149,9 @@ vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI, C_SD];
 opt_b3   = opt_b;
 opt_b3.q = size(vardata_orth, 2);   % = 9
 
-[pval_surp_B3, pval_news_B3] = check_orthogonality(vardata_orth, factor, opt_b3);
+pval_surp_B3 = check_orthogonality(vardata_orth, factor, opt_b3);
 n_pc_B3 = min(7, size(factor, 2));
-save_sufficiency_table(pval_surp_B3, pval_news_B3, n_pc_B3, ...
+save_sufficiency_table(pval_surp_B3, n_pc_B3, ...
     'B.3', fullfile(tab_dir, 'TableB3.txt'));
 
 %% ════════════════════════════════════════════════════════════════════════
@@ -263,8 +263,8 @@ opt_sm      = BASE;
 opt_sm.q    = size(small_var, 2);   % = 5
 [opt_sm.T, ~] = size(small_var);
 
-[pval_surp_E4, pval_news_E4] = check_orthogonality(small_var, factor, opt_sm);
-save_sufficiency_table(pval_surp_E4, pval_news_E4, min(7, size(factor,2)), ...
+pval_surp_E4 = check_orthogonality(small_var, factor, opt_sm);
+save_sufficiency_table(pval_surp_E4, min(7, size(factor,2)), ...
     'E.4', fullfile(tab_dir, 'TableE4.txt'));
 
 %% ── Table E.5: FAVAR (small-scale + 5 PCs) ──────────────────────────────
@@ -281,8 +281,8 @@ opt_fav.c              = 0;            % no intercept (factors demeaned)
 opt_fav.q              = size(favar_data, 2);   % = 11
 [opt_fav.T, opt_fav.n] = size(favar_data);
 
-[pval_surp_E5, pval_news_E5] = check_orthogonality(favar_data, remain_factor, opt_fav);
-save_sufficiency_table(pval_surp_E5, pval_news_E5, size(remain_factor, 2), ...
+pval_surp_E5 = check_orthogonality(favar_data, remain_factor, opt_fav);
+save_sufficiency_table(pval_surp_E5, size(remain_factor, 2), ...
     'E.5', fullfile(tab_dir, 'TableE5.txt'));
 
 %% ── Figures E.14 & E.15: FAVAR IRFs ─────────────────────────────────────

@@ -58,11 +58,10 @@ small_var = [FEDGOV.FEDGOV, F.F, GDP.GDP, SUR.SUR, BONDY.x10YBOND];
 opt_small      = opt;
 opt_small.q    = size(small_var, 2);   % = 5
 opt_small.c    = 1;                    % constant in OLS step of check_orthogonality
-[pval_surp_E4, pval_news_E4] = check_orthogonality(small_var, factor, opt_small);
+pval_surp_E4 = check_orthogonality(small_var, factor, opt_small);
 
 n_pc = min(7, size(factor, 2));
-save_sufficiency_table(pval_surp_E4, pval_news_E4, n_pc, 'E.4', ...
-    fullfile(tab_dir, 'TableE4.txt'));
+save_sufficiency_table(pval_surp_E4, n_pc, 'E.4', fullfile(tab_dir, 'TableE4.txt'));
 
 %% ── 5. Table E.5 – Informational sufficiency of the FAVAR ───────────────
 %  Full FAVAR: [small_var, C_SD, 5 PCs] = 11 variables total
@@ -75,11 +74,10 @@ favar_data = [macro_favar, factor(:, 1:5)];
 remaining_factors = factor(:, 6:7);
 opt_favar   = opt;
 opt_favar.q = size(favar_data, 2);   % = 11
-[pval_surp_E5, pval_news_E5] = check_orthogonality(favar_data, remaining_factors, opt_favar);
+pval_surp_E5 = check_orthogonality(favar_data, remaining_factors, opt_favar);
 
 n_rem = size(remaining_factors, 2);   % = 2
-save_sufficiency_table(pval_surp_E5, pval_news_E5, n_rem, 'E.5', ...
-    fullfile(tab_dir, 'TableE5.txt'));
+save_sufficiency_table(pval_surp_E5, n_rem, 'E.5', fullfile(tab_dir, 'TableE5.txt'));
 
 %% ── 6. FAVAR BVAR estimation ─────────────────────────────────────────────
 VARnames_favar = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
