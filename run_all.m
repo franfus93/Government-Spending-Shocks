@@ -143,8 +143,8 @@ save_fig(figs(2), fig_dir, 'Figure2');   % news     (second figure created)
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('\n=== [Table B.3] Informational sufficiency ===\n');
 
-% 9 variables for orthogonality test (drop C_SD from the system)
-vardata_orth = [G, F, Y, SUR, BONDY, RER, CP, FFR, CCI];
+% 9 variables for orthogonality test (no fiscal-news factor, includes C_SD)
+vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI, C_SD];
 
 opt_b3   = opt_b;
 opt_b3.q = size(vardata_orth, 2);   % = 9
