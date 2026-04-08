@@ -133,8 +133,9 @@ irf_plot_var_full(opt_b.n, opt_b.n, opt_b.hor, ...
                   VARnames_base, colorB);
 
 figs = findall(0, 'Type', 'figure');
-save_fig(figs(1), fig_dir, 'Figure1');   % surprise (first figure created)
-save_fig(figs(2), fig_dir, 'Figure2');   % news     (second figure created)
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+save_fig(figs(1), fig_dir, 'Figure1');   % surprise (first created)
+save_fig(figs(2), fig_dir, 'Figure2');   % news     (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  4.  TABLE B.3 – INFORMATIONAL SUFFICIENCY, MEDIUM-SCALE VAR
@@ -143,11 +144,12 @@ save_fig(figs(2), fig_dir, 'Figure2');   % news     (second figure created)
 %% ════════════════════════════════════════════════════════════════════════
 fprintf('\n=== [Table B.3] Informational sufficiency ===\n');
 
-% 9 variables for orthogonality test (no fiscal-news factor, includes C_SD)
-vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI, C_SD];
+% 8 macro variables: exclude fiscal-news variable (Ft(1,4)) and
+% consumption inequality (C_SD) — the outcome variable of interest
+vardata_orth = [G, Y, BONDY, SUR, RER, CP, FFR, CCI];
 
 opt_b3   = opt_b;
-opt_b3.q = size(vardata_orth, 2);   % = 9
+opt_b3.q = size(vardata_orth, 2);   % = 8
 
 pval_surp_B3 = check_orthogonality(vardata_orth, factor, opt_b3);
 n_pc_B3 = size(factor, 2);
@@ -165,8 +167,9 @@ close all;
 get_shocks(vardata_base, eta_b, opt_b.p, start_year_shock);
 
 figs = findall(0, 'Type', 'figure');
-save_fig(figs(1), fig_dir, 'FigureC7');   % surprise shock (created first)
-save_fig(figs(2), fig_dir, 'FigureC8');   % news shock    (created second)
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+save_fig(figs(1), fig_dir, 'FigureC7');   % surprise shock (first created)
+save_fig(figs(2), fig_dir, 'FigureC8');   % news shock    (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  6.  APPENDIX D.1 – nt(1,4) ROBUSTNESS
@@ -189,8 +192,9 @@ close all;
 irf_plot_var_full(opt_N.n, opt_N.n, opt_N.hor, ...
                   MidD_N, HighD_N, LowD_N, HighD_N, LowD_N, VARnames_N, colorB);
 figs = findall(0, 'Type', 'figure');
-close(figs(1));                         % discard surprise figure
-save_fig(figs(2), fig_dir, 'FigureD9'); % keep news figure
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+close(figs(1));                          % discard surprise figure (first created)
+save_fig(figs(2), fig_dir, 'FigureD9'); % keep news figure (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  7.  APPENDIX D.2 – GINI COEFFICIENT ROBUSTNESS
@@ -300,8 +304,9 @@ irf_plot_var(opt_fav.n, n_mac_favar, opt_fav.hor, ...
              MidD_f, HighD_f, LowD_f, VARnames_favar, colorB);
 
 figs = findall(0, 'Type', 'figure');
-save_fig(figs(1), fig_dir, 'FigureE14');   % surprise
-save_fig(figs(2), fig_dir, 'FigureE15');   % news
+[~, ord] = sort([figs.Number]); figs = figs(ord);   % ensure creation order
+save_fig(figs(1), fig_dir, 'FigureE14');   % surprise (first created)
+save_fig(figs(2), fig_dir, 'FigureE15');   % news     (second created)
 
 %% ════════════════════════════════════════════════════════════════════════
 %  10.  SAVE RESULTS
