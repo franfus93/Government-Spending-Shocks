@@ -53,28 +53,31 @@ factor = get_factors(opt.r, start_sample, end_sample);
 % factor is (T × r), columns ordered by eigenvalue magnitude
 
 %% ── 4. Table E.4 – Informational sufficiency of the small-scale VAR ─────
-%  Small-scale VAR: G, GDP, Federal Surplus, Bond Yield (no Ft(1,4), c=0)
-small_var = [FEDGOV.FEDGOV, GDP.GDP, SUR.SUR, BONDY.x10YBOND];
+%  Small-scale VAR: G, GDP, Surplus, Bond, C_SD (no Ft(1,4))
+small_var = [FEDGOV.FEDGOV, GDP.GDP, SUR.SUR, BONDY.x10YBOND, ...
+             C_SD_LNCONS_SA.C_SD_LNCONS_SA];
 opt_small      = opt;                  % opt.c = 0 (factors demeaned)
-opt_small.q    = size(small_var, 2);   % = 4
+opt_small.q    = size(small_var, 2);   % = 5
 pval_surp_E4 = check_orthogonality(small_var, factor, opt_small);
 
 n_pc = size(factor, 2);
 save_sufficiency_table(pval_surp_E4, n_pc, 'E.4', fullfile(tab_dir, 'TableE4.txt'));
 
 %% ── 5. Table E.5 – Informational sufficiency of the FAVAR ───────────────
-%  Full FAVAR: [G, Ft(1,4), GDP, Surplus, Bond, C_SD, PC1-5] = 11 variables
+%  Full FAVAR (for IRF): [G, Ft(1,4), GDP, Surplus, Bond, C_SD, PC1-5] = 11 vars
 macro_favar = [FEDGOV.FEDGOV, F.F, GDP.GDP, SUR.SUR, BONDY.x10YBOND, ...
                C_SD_LNCONS_SA.C_SD_LNCONS_SA];
 n_macro = size(macro_favar, 2);   % = 6
 favar_data = [macro_favar, factor(:, 1:5)];
 
-% Test against all 9 PCs (consistent with reference: full factor set)
-opt_favar   = opt;
-opt_favar.q = size(favar_data, 2);   % = 11
-pval_surp_E5 = check_orthogonality(favar_data, factor, opt_favar);
+% Orthogonality test: exclude Ft(1,4), keep C_SD → [G, GDP, Sur, Bond, C_SD, PC1-5]
+favar_orth = [FEDGOV.FEDGOV, GDP.GDP, SUR.SUR, BONDY.x10YBOND, ...
+              C_SD_LNCONS_SA.C_SD_LNCONS_SA, factor(:, 1:5)];
+opt_favar      = opt;
+opt_favar.q    = size(favar_orth, 2);   % = 10
+pval_surp_E5 = check_orthogonality(favar_orth, factor, opt_favar);
 
-save_sufficiency_table(pval_surp_E5, min(7, size(factor,2)), 'E.5', fullfile(tab_dir, 'TableE5.txt'));
+save_sufficiency_table(pval_surp_E5, size(factor, 2), 'E.5', fullfile(tab_dir, 'TableE5.txt'));
 
 %% ── 6. FAVAR BVAR estimation ─────────────────────────────────────────────
 VARnames_favar = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
