@@ -214,54 +214,30 @@ save_fig(all_figs(end), fig_dir, 'FigureD9');   % keep news
 %      Figure D.10: Gini IRF to SURPRISE shock
 %      Figure D.11: Gini IRF to NEWS shock
 %% ════════════════════════════════════════════════════════════════════════
-fprintf('\n=== [Figures D.10 & D.11] Robustness: Gini ===\n');
+%  7.  APPENDIX D – ALTERNATIVE INEQUALITY MEASURES
+%      Figure D.10: 2×2 panel — Gini & 90-10 × Surprise & News
+%% ════════════════════════════════════════════════════════════════════════
+fprintf('\n=== [Figure D.10] Robustness: alternative inequality measures ===\n');
 
+% --- Gini coefficient ----------------------------------------------------
 vardata_Gini = [G, F, Y, SUR, BONDY, RER, CP, FFR, CCI, GINI];
-
 opt_Gi = opt_b;
 [opt_Gi.T, opt_Gi.n] = size(vardata_Gini);
-
 [irf_Gi, ~, ~, ~, ~, ~] = bvar_estimate(vardata_Gini, opt_Gi);
 [LowD_Gi, MidD_Gi, HighD_Gi] = compute_conf_bands(irf_Gi, opt_Gi.n, opt_Gi.hor, 68, 90);
 
-% Figure D.10 – surprise shock, Gini only
-plot_ineq_one_shock(opt_Gi.n, opt_Gi.n, opt_Gi.hor, ...
-    MidD_Gi, HighD_Gi, LowD_Gi, 1, colorB, ...
-    'Gini: Surprise shock');
-save_fig(gcf, fig_dir, 'FigureD10');
-
-% Figure D.11 – news shock, Gini only
-plot_ineq_one_shock(opt_Gi.n, opt_Gi.n, opt_Gi.hor, ...
-    MidD_Gi, HighD_Gi, LowD_Gi, 2, colorB, ...
-    'Gini: News shock');
-save_fig(gcf, fig_dir, 'FigureD11');
-
-%% ════════════════════════════════════════════════════════════════════════
-%  8.  APPENDIX D.3 – 90-10 PERCENTILE ROBUSTNESS
-%      Figure D.12: 90-10 IRF to SURPRISE shock
-%      Figure D.13: 90-10 IRF to NEWS shock
-%% ════════════════════════════════════════════════════════════════════════
-fprintf('\n=== [Figures D.12 & D.13] Robustness: 90-10 percentile ===\n');
-
+% --- 90-10 range ---------------------------------------------------------
 vardata_90 = [G, F, Y, SUR, BONDY, RER, CP, FFR, CCI, C_9010];
-
 opt_90 = opt_b;
 [opt_90.T, opt_90.n] = size(vardata_90);
-
 [irf_90, ~, ~, ~, ~, ~] = bvar_estimate(vardata_90, opt_90);
 [LowD_90, MidD_90, HighD_90] = compute_conf_bands(irf_90, opt_90.n, opt_90.hor, 68, 90);
 
-% Figure D.12 – surprise
-plot_ineq_one_shock(opt_90.n, opt_90.n, opt_90.hor, ...
-    MidD_90, HighD_90, LowD_90, 1, colorB, ...
-    '90-10 Range: Surprise shock');
-save_fig(gcf, fig_dir, 'FigureD12');
-
-% Figure D.13 – news
-plot_ineq_one_shock(opt_90.n, opt_90.n, opt_90.hor, ...
-    MidD_90, HighD_90, LowD_90, 2, colorB, ...
-    '90-10 Range: News shock');
-save_fig(gcf, fig_dir, 'FigureD13');
+% --- 2×2 panel -----------------------------------------------------------
+irf_plot_ineq_panel(opt_Gi.n, MidD_Gi, HighD_Gi, LowD_Gi, ...
+                    opt_90.n, MidD_90, HighD_90, LowD_90, ...
+                    opt_b.hor, colorB);
+save_fig(gcf, fig_dir, 'FigureD10');
 
 %% ════════════════════════════════════════════════════════════════════════
 %  9.  APPENDIX E – FAVAR
