@@ -30,10 +30,10 @@ col_90_news = 2 + n_90*(n_90 - 1);   % 90-10, news
 
 h = 0:hor-1;
 
-configs = { col_gi_surp, MidD_Gi, HighD_Gi, LowD_Gi, 'Gini Coefficient',   'Surprise Shock'; ...
-            col_90_surp, MidD_90, HighD_90, LowD_90, '90-10 Range',         'Surprise Shock'; ...
-            col_gi_news, MidD_Gi, HighD_Gi, LowD_Gi, 'Gini Coefficient',    'News Shock'; ...
-            col_90_news, MidD_90, HighD_90, LowD_90, '90-10 Range',         'News Shock' };
+configs = { col_gi_surp, MidD_Gi, HighD_Gi, LowD_Gi, 'Gini Coefficient to \textit{Surprise Shock}'; ...
+            col_90_surp, MidD_90, HighD_90, LowD_90, '90-10 Range to \textit{Surprise Shock}'; ...
+            col_gi_news, MidD_Gi, HighD_Gi, LowD_Gi, 'Gini Coefficient to \textit{News Shock}'; ...
+            col_90_news, MidD_90, HighD_90, LowD_90, '90-10 Range to \textit{News Shock}' };
 
 figure('Units', 'normalized', 'Position', [0.10 0.10 0.60 0.65]);
 
@@ -42,8 +42,7 @@ for p = 1:4
     Middle  = configs{p,2};
     High    = configs{p,3};
     Low     = configs{p,4};
-    var_lbl = configs{p,5};
-    shk_lbl = configs{p,6};
+    ttl = configs{p,5};
 
     subplot(2, 2, p);
     fill([h, fliplr(h)]', [High(:,col); flipud(Low(:,col))], ...
@@ -58,9 +57,8 @@ for p = 1:4
 
     set(gca, 'FontSize', 14, 'FontName', 'Times');
     ytickformat('%.2f');
-    title([var_lbl, ' — ', shk_lbl], 'FontSize', 15, ...
-          'FontName', 'Times', 'FontWeight', 'normal');
-    xlabel('Quarters', 'FontSize', 14, 'FontName', 'Times');
+    title(ttl, 'FontSize', 15, 'FontName', 'Times', ...
+          'FontWeight', 'normal', 'Interpreter', 'latex');
 end
 
 end
