@@ -55,9 +55,9 @@ for p = 1:4
     axis tight;
     xlim([0 hor-1]);
 
-    set(gca, 'FontSize', 14, 'FontName', 'Times');
+    set(gca, 'FontSize', 18, 'FontName', 'Times');
     ytickformat('%.2f');
-    title(ttl, 'FontSize', 15, 'FontName', 'Times', ...
+    title(ttl, 'FontSize', 20, 'FontName', 'Times', ...
           'FontWeight', 'normal', 'Interpreter', 'latex');
 end
 
