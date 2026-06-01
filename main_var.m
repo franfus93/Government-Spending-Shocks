@@ -159,7 +159,7 @@ plot_labels = VARnames(plot_vars);
 h = 0:opt.hor-1;
 
 % Subplot positions: tight layout
-sp_w = 0.29; sp_h = 0.78; sp_y = 0.10;
+sp_w = 0.29; sp_h = 0.85; sp_y = 0.10;
 sp_x = [0.05, 0.37, 0.69];
 
 % Figure 1 – surprise shock
