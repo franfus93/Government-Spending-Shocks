@@ -158,11 +158,15 @@ plot_vars   = [1, 2, 10];
 plot_labels = VARnames(plot_vars);
 h = 0:opt.hor-1;
 
+% Subplot positions: wider and shorter panels
+sp_w = 0.27; sp_h = 0.55; sp_y = 0.28;
+sp_x = [0.06, 0.38, 0.70];
+
 % Figure 1 – surprise shock
-figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
+figure('Units', 'normalized', 'Position', [0.05 0.35 0.9 0.22]);
 for i = 1:3
     col = 1 + opt.n*(plot_vars(i)-1);   % shock 1, variable k
-    subplot(1, 3, i);
+    axes('Position', [sp_x(i), sp_y, sp_w, sp_h]);
     set(gca, 'FontSize', 8, 'FontName', 'Times');
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
@@ -177,10 +181,10 @@ for i = 1:3
 end
 
 % Figure 2 – news shock
-figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
+figure('Units', 'normalized', 'Position', [0.05 0.35 0.9 0.22]);
 for i = 1:3
     col = 2 + opt.n*(plot_vars(i)-1);   % shock 2, variable k
-    subplot(1, 3, i);
+    axes('Position', [sp_x(i), sp_y, sp_w, sp_h]);
     set(gca, 'FontSize', 8, 'FontName', 'Times');
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
