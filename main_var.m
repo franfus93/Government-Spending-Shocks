@@ -167,7 +167,6 @@ figure('Units', 'normalized', 'Position', [0.05 0.35 0.9 0.22]);
 for i = 1:3
     col = 1 + opt.n*(plot_vars(i)-1);   % shock 1, variable k
     axes('Position', [sp_x(i), sp_y, sp_w, sp_h]);
-    set(gca, 'FontSize', 8, 'FontName', 'Times');
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
     alpha(0.20); hold on;
@@ -176,7 +175,7 @@ for i = 1:3
     yline(0, 'r-', 'LineWidth', 1);
     hold off;
     xlabel(plot_labels{i}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
-    ax = gca; ax.XAxis.FontSize = 12; ax.YAxis.FontSize = 12;
+    set(gca, 'FontSize', 15, 'FontName', 'Times');
     axis tight; ytickformat('%.2f');
 end
 
@@ -185,7 +184,6 @@ figure('Units', 'normalized', 'Position', [0.05 0.35 0.9 0.22]);
 for i = 1:3
     col = 2 + opt.n*(plot_vars(i)-1);   % shock 2, variable k
     axes('Position', [sp_x(i), sp_y, sp_w, sp_h]);
-    set(gca, 'FontSize', 8, 'FontName', 'Times');
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
     alpha(0.20); hold on;
@@ -194,7 +192,7 @@ for i = 1:3
     yline(0, 'r-', 'LineWidth', 1);
     hold off;
     xlabel(plot_labels{i}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
-    ax = gca; ax.XAxis.FontSize = 12; ax.YAxis.FontSize = 12;
+    set(gca, 'FontSize', 15, 'FontName', 'Times');
     axis tight; ytickformat('%.2f');
 end
 
