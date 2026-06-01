@@ -158,15 +158,11 @@ plot_vars   = [1, 2, 10];
 plot_labels = VARnames(plot_vars);
 h = 0:opt.hor-1;
 
-% Subplot positions: tight layout
-sp_w = 0.29; sp_h = 0.78; sp_y = 0.10;
-sp_x = [0.05, 0.37, 0.69];
-
 % Figure 1 – surprise shock
-figure('Units', 'normalized', 'Position', [0.05 0.35 0.9 0.22]);
+figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
 for i = 1:3
     col = 1 + opt.n*(plot_vars(i)-1);   % shock 1, variable k
-    axes('Position', [sp_x(i), sp_y, sp_w, sp_h]);
+    subplot(1, 3, i);
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
     alpha(0.20); hold on;
@@ -180,10 +176,10 @@ for i = 1:3
 end
 
 % Figure 2 – news shock
-figure('Units', 'normalized', 'Position', [0.05 0.35 0.9 0.22]);
+figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
 for i = 1:3
     col = 2 + opt.n*(plot_vars(i)-1);   % shock 2, variable k
-    axes('Position', [sp_x(i), sp_y, sp_w, sp_h]);
+    subplot(1, 3, i);
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
     alpha(0.20); hold on;
