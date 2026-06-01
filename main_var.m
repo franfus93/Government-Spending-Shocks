@@ -172,7 +172,7 @@ for i = 1:3
     yline(0, 'r-', 'LineWidth', 1);
     hold off;
     xlabel(plot_labels{i}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
-    set(gca, 'XAxis.FontSize', 12, 'YAxis.FontSize', 12);
+    ax = gca; ax.XAxis.FontSize = 12; ax.YAxis.FontSize = 12;
     axis tight; ytickformat('%.2f');
 end
 
@@ -190,7 +190,7 @@ for i = 1:3
     yline(0, 'r-', 'LineWidth', 1);
     hold off;
     xlabel(plot_labels{i}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
-    set(gca, 'XAxis.FontSize', 12, 'YAxis.FontSize', 12);
+    ax = gca; ax.XAxis.FontSize = 12; ax.YAxis.FontSize = 12;
     axis tight; ytickformat('%.2f');
 end
 
