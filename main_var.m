@@ -150,14 +150,51 @@ for v = 1:opt.n
     end
 end
 
-%% ── 7. Plot IRFs ─────────────────────────────────────────────────────────
+%% ── 7. Plot IRFs (1×3: G, F, Consumption Inequality) ─────────────────────
 colorBNDS = [0 0 1];
 
-% Figure 1 – surprise shock | Figure 2 – news shock
-irf_plot_var_full(opt.n, opt.q, opt.hor, MiddleD, HighD, LowD, ...
-                  HighD90, LowD90, VARnames, colorBNDS);
+% Variables to plot: G (1), Ft(1,4) (2), Consumption Inequality (10)
+plot_vars   = [1, 2, 10];
+plot_labels = VARnames(plot_vars);
+h = 0:opt.hor-1;
 
-% Save Figure 1 (first figure created)
+% Figure 1 – surprise shock
+figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
+for i = 1:3
+    col = 1 + opt.n*(plot_vars(i)-1);   % shock 1, variable k
+    subplot(1, 3, i);
+    set(gca, 'FontSize', 8, 'FontName', 'Times');
+    fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
+         colorBNDS, 'EdgeColor', 'k');
+    alpha(0.20); hold on;
+    plot(h, MiddleD(:,col), 'k-.', 'LineWidth', 1.5);
+    xlim([0 opt.hor-1]);
+    yline(0, 'r-', 'LineWidth', 1);
+    hold off;
+    xlabel(plot_labels{i}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
+    set(gca, 'XAxis.FontSize', 12, 'YAxis.FontSize', 12);
+    axis tight; ytickformat('%.2f');
+end
+
+% Figure 2 – news shock
+figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
+for i = 1:3
+    col = 2 + opt.n*(plot_vars(i)-1);   % shock 2, variable k
+    subplot(1, 3, i);
+    set(gca, 'FontSize', 8, 'FontName', 'Times');
+    fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
+         colorBNDS, 'EdgeColor', 'k');
+    alpha(0.20); hold on;
+    plot(h, MiddleD(:,col), 'k-.', 'LineWidth', 1.5);
+    xlim([0 opt.hor-1]);
+    yline(0, 'r-', 'LineWidth', 1);
+    hold off;
+    xlabel(plot_labels{i}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
+    set(gca, 'XAxis.FontSize', 12, 'YAxis.FontSize', 12);
+    axis tight; ytickformat('%.2f');
+end
+
+% Save figures
 figs = findall(0, 'Type', 'figure');
 if numel(figs) >= 2
     saveas(figs(end),   fullfile(fig_dir, 'Figure1.pdf'));
