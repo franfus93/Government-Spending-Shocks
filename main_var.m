@@ -158,9 +158,9 @@ plot_vars   = [1, 2, 10];
 plot_labels = VARnames(plot_vars);
 h = 0:opt.hor-1;
 
-% Subplot positions: wider and shorter panels
-sp_w = 0.27; sp_h = 0.55; sp_y = 0.28;
-sp_x = [0.06, 0.38, 0.70];
+% Subplot positions: tight layout
+sp_w = 0.29; sp_h = 0.72; sp_y = 0.22;
+sp_x = [0.05, 0.37, 0.69];
 
 % Figure 1 – surprise shock
 figure('Units', 'normalized', 'Position', [0.05 0.35 0.9 0.22]);
