@@ -23,14 +23,14 @@
 
 clc; clear; close all;
 
-%% ── 0. Paths ─────────────────────────────────────────────────────────────
+%% ── 0. Paths ─────────────────────────────────────────────────────────────────
 root_dir = fileparts(mfilename('fullpath'));
 addpath(fullfile(root_dir, 'Functions'));
 data_dir = fullfile(root_dir, 'Data');
 fig_dir  = fullfile(root_dir, 'Figures');
 if ~exist(fig_dir, 'dir'), mkdir(fig_dir); end
 
-%% ── 1. Load data ─────────────────────────────────────────────────────────
+%% ── 1. Load data ─────────────────────────────────────────────────────────────
 data = readtable(fullfile(data_dir, 'data.xlsx'));
 
 start_sample = datetime('01-Dec-1981', 'InputFormat', 'dd-MMM-yyyy');
@@ -50,7 +50,7 @@ FED_FUNDS    = data(idx_start:idx_end, 16);   % Federal funds rate
 CP_REAL      = data(idx_start:idx_end, 35);   % Corporate profits (real)
 CCI          = data(idx_start:idx_end, 23);   % Consumer confidence
 
-%% ── 2. Model options ─────────────────────────────────────────────────────
+%% ── 2. Model options ─────────────────────────────────────────────────────────
 opt.r       = 9;     % max factors for get_factors
 opt.p       = 4;     % VAR lags
 opt.c       = 1;     % include intercept
@@ -58,7 +58,7 @@ opt.t       = 0;     % no deterministic trend
 opt.drawfin = 5000;  % posterior draws
 opt.hor     = 17;    % impulse-response horizons
 
-%% ── 3. Assemble VAR data matrix ──────────────────────────────────────────
+%% ── 3. Assemble VAR data matrix ──────────────────────────────────────────────
 vardata = [FEDGOV.FEDGOV, F.F, GDP.GDP, SUR.SUR, BONDY.x10YBOND, ...
            RER.RER, CP_REAL.CP_REAL, FED_FUNDS.FED_FUNDS, ...
            CCI.CSCICP03USM665S, C_SD_LNCONS_SA.C_SD_LNCONS_SA];
@@ -71,7 +71,7 @@ VARnames = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
 [opt.T, opt.n] = size(vardata);
 opt.q = opt.n;   % pure VAR: no latent factors
 
-%% ── 4. BVAR estimation (Jeffreys priors) ─────────────────────────────────
+%% ── 4. BVAR estimation (Jeffreys priors) ─────────────────────────────────────
 fprintf('Estimating baseline VAR (%d draws)...\n', opt.drawfin);
 
 PI         = zeros(opt.n*opt.p + opt.c + opt.t, opt.n, opt.drawfin);
@@ -95,7 +95,7 @@ for i = 1:opt.drawfin
     end
 end
 
-%% ── 5. Cholesky IRFs ─────────────────────────────────────────────────────
+%% ── 5. Cholesky IRFs ─────────────────────────────────────────────────────────
 candidateirf = zeros(opt.n, opt.n, opt.hor, opt.drawfin);
 eta          = zeros(opt.T - opt.p, opt.n, opt.drawfin);
 
@@ -122,7 +122,7 @@ for k = 1:opt.drawfin
     news_shocks(:,k)         = eta(:,2,k);   % shock 2 = news
 end
 
-%% ── 6. Confidence bands ──────────────────────────────────────────────────
+%% ── 6. Confidence bands ──────────────────────────────────────────────────────
 % Reshape IRFs: (hor × n² × drawfin), col = shock + n*(variable-1)
 candidateirf_wold = zeros(opt.hor, opt.n*opt.n, opt.drawfin);
 for k = 1:opt.drawfin
@@ -150,19 +150,23 @@ for v = 1:opt.n
     end
 end
 
-%% ── 7. Plot IRFs (1×3: G, F, Consumption Inequality) ─────────────────────
+%% ── 7. Plot IRFs ─────────────────────────────────────────────────────────────
 colorBNDS = [0 0 1];
 
-% Variables to plot: G (1), Ft(1,4) (2), Consumption Inequality (10)
+% Select which VAR variables to plot (indices into the VAR ordering 1..10)
 plot_vars   = [1, 2, 10];
+n_plot      = numel(plot_vars);
 plot_labels = VARnames(plot_vars);
 h = 0:opt.hor-1;
 
+% Determine subplot grid: single row
+n_cols = n_plot;
+
 % Figure 1 – surprise shock
 figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
-for i = 1:3
+for i = 1:n_plot
     col = 1 + opt.n*(plot_vars(i)-1);   % shock 1, variable k
-    subplot(1, 3, i);
+    subplot(1, n_cols, i);
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
     alpha(0.20); hold on;
@@ -177,9 +181,9 @@ end
 
 % Figure 2 – news shock
 figure('Units', 'normalized', 'Position', [0.05 0.3 0.9 0.3]);
-for i = 1:3
+for i = 1:n_plot
     col = 2 + opt.n*(plot_vars(i)-1);   % shock 2, variable k
-    subplot(1, 3, i);
+    subplot(1, n_cols, i);
     fill([h, fliplr(h)]', [HighD(:,col); flipud(LowD(:,col))], ...
          colorBNDS, 'EdgeColor', 'k');
     alpha(0.20); hold on;
@@ -202,7 +206,7 @@ if numel(figs) >= 2
     fprintf('Saved Figure1 and Figure2.\n');
 end
 
-%% ── 8. Save workspace for downstream use ────────────────────────────────
+%% ── 8. Save workspace for downstream use ────────────────────────────────────
 save(fullfile(root_dir, 'Results_VAR.mat'), ...
      'vardata', 'opt', 'VARnames', ...
      'candidateirf_wold', 'MiddleD', 'HighD', 'LowD', 'HighD90', 'LowD90', ...
