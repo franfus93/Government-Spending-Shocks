@@ -116,8 +116,8 @@ for k = 1:opt.drawfin
         D(:,:,j) = C(:,:,j) * S;
     end
     candidateirf(:,:,:,k) = D;
-    % Structural shocks: epsilon = S * eta  =>  eta = S \\ epsilon
-    eta(:,:,k) = (D(:,:,1) \\ errornorm(:,:,k)')';
+    % Structural shocks: epsilon = S * eta  =>  eta = S \ epsilon
+    eta(:,:,k) = (D(:,:,1) \ errornorm(:,:,k)')';
     gov_spending_shocks(:,k) = eta(:,1,k);   % shock 1 = surprise
     news_shocks(:,k)         = eta(:,2,k);   % shock 2 = news
 end
