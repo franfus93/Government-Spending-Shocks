@@ -234,7 +234,7 @@ def factors_em(x, kmax, jj=2, DEMEAN=2, maxit=50):
 print("\n=== Estimating factors from FRED-QD ===")
 fred = pd.read_csv(f"{DATA_DIR}/FRED-QD.csv")
 tcode = fred.iloc[1, 1:].values.astype(float)  # row index 1 = "transform"
-rawdata_all = fred.iloc[2:, 1:].values.astype(float)  # from row 2 onwards = actual data
+rawdata_all = fred.iloc[1:, 1:].values.astype(float)  # from row 1 onwards (includes tcode row, matching MATLAB)
 
 # Determine sample range in quarters
 # FRED-QD starts 1981Q2 (row index 2 = "06/01/1981" which is 1981-Q2)
