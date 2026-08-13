@@ -26,50 +26,28 @@ function irf_plot_var_full(n, q, hor, MiddleIRF, HighIRF, LowIRF, ...
 
 plot_indices = 1:q;   % plot all q variables
 
-%% ── Figure 1: SURPRISE shock (shock 1) ──────────────────────────────────
-figure;
-for i = 1:q
-    k = plot_indices(i);
-    col = 1 + n*(k-1);   % shock 1, variable k
+for shock = 1:2
+    figure;
+    for i = 1:q
+        k   = plot_indices(i);
+        col = shock + n*(k-1);
 
-    subplot(4, 3, i);
-    set(gca, 'FontSize', 8, 'FontName', 'Times');
-    fill([0:hor-1, fliplr(0:hor-1)]', ...
-         [HighIRF(:,col); flipud(LowIRF(:,col))], ...
-         colorBNDS, 'EdgeColor', 'k');
-    alpha(0.20); hold on;
-    plot(0:hor-1, MiddleIRF(:,col), 'LineWidth', 1.5, 'Color', 'k', 'LineStyle', '-.');
-    xlim([0 hor-1]);
-    line(get(gca,'xlim'), [0 0], 'Color', [1 0 0], 'LineStyle', '-', 'LineWidth', 1);
-    hold off;
-    ax = gca;
-    xlabel(ax, VARnames{k}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
-    ax.XAxis.FontSize = 12;
-    ax.YAxis.FontSize = 12;
-    axis tight;
-    ytickformat('%.2f');
+        subplot(4, 3, i);
+        fill([0:hor-1, fliplr(0:hor-1)]', ...
+             [HighIRF(:,col); flipud(LowIRF(:,col))], ...
+             colorBNDS, 'EdgeColor', 'k');
+        alpha(0.20); hold on;
+        plot(0:hor-1, MiddleIRF(:,col), 'LineWidth', 1.5, 'Color', 'k', 'LineStyle', '-.');
+        yline(0, 'r-', 'LineWidth', 1);
+        hold off;
+
+        axis tight;
+        xlim([0 hor-1]);
+
+        set(gca, 'FontSize', 14, 'FontName', 'Times');
+        ytickformat('%.2f');
+        xlabel(VARnames{k}, 'FontSize', 16, 'FontName', 'Times', 'Interpreter', 'latex');
+    end
 end
 
-%% ── Figure 2: NEWS shock (shock 2) ───────────────────────────────────────
-figure;
-for i = 1:q
-    k = plot_indices(i);
-    col = 2 + n*(k-1);   % shock 2, variable k
-
-    subplot(4, 3, i);
-    set(gca, 'FontSize', 8, 'FontName', 'Times');
-    fill([0:hor-1, fliplr(0:hor-1)]', ...
-         [HighIRF(:,col); flipud(LowIRF(:,col))], ...
-         colorBNDS, 'EdgeColor', 'k');
-    alpha(0.20); hold on;
-    plot(0:hor-1, MiddleIRF(:,col), 'LineWidth', 1.5, 'Color', 'k', 'LineStyle', '-.');
-    xlim([0 hor-1]);
-    line(get(gca,'xlim'), [0 0], 'Color', [1 0 0], 'LineStyle', '-', 'LineWidth', 1);
-    hold off;
-    ax = gca;
-    xlabel(ax, VARnames{k}, 'FontSize', 14, 'FontName', 'Times', 'Interpreter', 'latex');
-    ax.XAxis.FontSize = 12;
-    ax.YAxis.FontSize = 12;
-    axis tight;
-    ytickformat('%.2f');
 end
