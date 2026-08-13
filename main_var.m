@@ -13,7 +13,7 @@
 %    9  Consumer Confidence
 %   10  Consumption Inequality (cross-sectional std-dev)
 %
-%  Estimation: Bayesian VAR(4) with Normal-Inverse-Wishart (NIW) priors
+%  Estimation: Bayesian VAR(4) with Jeffreys (diffuse) priors
 %              4 lags, intercept, 5 000 posterior draws
 %  Sample:     1981:Q4 – 2019:Q4
 %
@@ -23,14 +23,14 @@
 
 clc; clear; close all;
 
-%% ── 0. Paths ─────────────────────────────────────────────────────────────────
+%% ── 0. Paths ─────────────────────────────────────────────────────────────────────
 root_dir = fileparts(mfilename('fullpath'));
 addpath(fullfile(root_dir, 'Functions'));
 data_dir = fullfile(root_dir, 'Data');
 fig_dir  = fullfile(root_dir, 'Figures');
 if ~exist(fig_dir, 'dir'), mkdir(fig_dir); end
 
-%% ── 1. Load data ─────────────────────────────────────────────────────────────
+%% ── 1. Load data ─────────────────────────────────────────────────────────────────
 data = readtable(fullfile(data_dir, 'data.xlsx'));
 
 start_sample = datetime('01-Dec-1981', 'InputFormat', 'dd-MMM-yyyy');
@@ -50,7 +50,7 @@ FED_FUNDS    = data(idx_start:idx_end, 16);   % Federal funds rate
 CP_REAL      = data(idx_start:idx_end, 35);   % Corporate profits (real)
 CCI          = data(idx_start:idx_end, 23);   % Consumer confidence
 
-%% ── 2. Model options ─────────────────────────────────────────────────────────
+%% ── 2. Model options ─────────────────────────────────────────────────────────────
 opt.r       = 9;     % max factors for get_factors
 opt.p       = 4;     % VAR lags
 opt.c       = 1;     % include intercept
@@ -58,7 +58,7 @@ opt.t       = 0;     % no deterministic trend
 opt.drawfin = 5000;  % posterior draws
 opt.hor     = 17;    % impulse-response horizons
 
-%% ── 3. Assemble VAR data matrix ──────────────────────────────────────────────
+%% ── 3. Assemble VAR data matrix ──────────────────────────────────────────────────
 vardata = [FEDGOV.FEDGOV, F.F, GDP.GDP, SUR.SUR, BONDY.x10YBOND, ...
            RER.RER, CP_REAL.CP_REAL, FED_FUNDS.FED_FUNDS, ...
            CCI.CSCICP03USM665S, C_SD_LNCONS_SA.C_SD_LNCONS_SA];
@@ -71,7 +71,7 @@ VARnames = {'Government Spending'; '$F_t(1,4)$'; 'Real GDP'; ...
 [opt.T, opt.n] = size(vardata);
 opt.q = opt.n;   % pure VAR: no latent factors
 
-%% ── 4. BVAR estimation (Jeffreys priors) ─────────────────────────────────────
+%% ── 4. BVAR estimation (Jeffreys priors) ───────────────────────────────────────
 fprintf('Estimating baseline VAR (%d draws)...\n', opt.drawfin);
 
 PI         = zeros(opt.n*opt.p + opt.c + opt.t, opt.n, opt.drawfin);
@@ -85,7 +85,7 @@ for i = 1:opt.drawfin
     while stable < 0
         [PI(:,:,i), BigA(:,:,i), Sigma(:,:,i), ...
          errornorm(:,:,i), fittednorm(:,:,i)] = ...
-            BVAR_niw(vardata, opt.p, opt.c, opt.t, opt.n);
+            BVAR_jeffrey(vardata, opt.p, opt.c, opt.t, opt.n);
         if all(abs(eig(BigA(:,:,i))) < 1)
             stable = 1;
         end
@@ -95,7 +95,7 @@ for i = 1:opt.drawfin
     end
 end
 
-%% ── 5. Cholesky IRFs ─────────────────────────────────────────────────────────
+%% ── 5. Cholesky IRFs ───────────────────────────────────────────────────────────
 candidateirf = zeros(opt.n, opt.n, opt.hor, opt.drawfin);
 eta          = zeros(opt.T - opt.p, opt.n, opt.drawfin);
 
@@ -116,13 +116,13 @@ for k = 1:opt.drawfin
         D(:,:,j) = C(:,:,j) * S;
     end
     candidateirf(:,:,:,k) = D;
-    % Structural shocks: epsilon = S * eta  =>  eta = S \ epsilon
-    eta(:,:,k) = (D(:,:,1) \ errornorm(:,:,k)')';
+    % Structural shocks: epsilon = S * eta  =>  eta = S \\ epsilon
+    eta(:,:,k) = (D(:,:,1) \\ errornorm(:,:,k)')';
     gov_spending_shocks(:,k) = eta(:,1,k);   % shock 1 = surprise
     news_shocks(:,k)         = eta(:,2,k);   % shock 2 = news
 end
 
-%% ── 6. Confidence bands ──────────────────────────────────────────────────────
+%% ── 6. Confidence bands ────────────────────────────────────────────────────────
 % Reshape IRFs: (hor × n² × drawfin), col = shock + n*(variable-1)
 candidateirf_wold = zeros(opt.hor, opt.n*opt.n, opt.drawfin);
 for k = 1:opt.drawfin
@@ -133,6 +133,24 @@ end
 conf_narrow = 68;
 conf_large  = 90;
 
+%% ── 7. Plot IRFs ───────────────────────────────────────────────────────────────
+colorBNDS = [0 0 1];
+
+% Select which VAR variables to plot (indices into the VAR ordering 1..10)
+plot_vars   = [1, 2, 10];
+
+% Select which variables to cumulate ([] = none, e.g. [1 3] for G and GDP)
+cumul_vars  = [];
+
+% Apply cumulation per draw, then compute bands
+irf_draws = candidateirf_wold;
+for v = cumul_vars
+    for s = 1:opt.n
+        col = s + opt.n*(v-1);
+        irf_draws(:,col,:) = cumsum(irf_draws(:,col,:), 1);
+    end
+end
+
 LowD   = zeros(opt.hor, opt.n*opt.n);
 LowD90 = zeros(opt.hor, opt.n*opt.n);
 MiddleD = zeros(opt.hor, opt.n*opt.n);
@@ -142,19 +160,13 @@ HighD90 = zeros(opt.hor, opt.n*opt.n);
 for v = 1:opt.n
     for s = 1:opt.n
         col = s + opt.n*(v-1);
-        LowD(:,col)    = prctile(candidateirf_wold(:,col,:), (100-conf_narrow)/2, 3);
-        LowD90(:,col)  = prctile(candidateirf_wold(:,col,:), (100-conf_large)/2,  3);
-        MiddleD(:,col) = prctile(candidateirf_wold(:,col,:), 50, 3);
-        HighD(:,col)   = prctile(candidateirf_wold(:,col,:), (100+conf_narrow)/2, 3);
-        HighD90(:,col) = prctile(candidateirf_wold(:,col,:), (100+conf_large)/2,  3);
+        LowD(:,col)    = prctile(irf_draws(:,col,:), (100-conf_narrow)/2, 3);
+        LowD90(:,col)  = prctile(irf_draws(:,col,:), (100-conf_large)/2,  3);
+        MiddleD(:,col) = prctile(irf_draws(:,col,:), 50, 3);
+        HighD(:,col)   = prctile(irf_draws(:,col,:), (100+conf_narrow)/2, 3);
+        HighD90(:,col) = prctile(irf_draws(:,col,:), (100+conf_large)/2,  3);
     end
 end
-
-%% ── 7. Plot IRFs ─────────────────────────────────────────────────────────────
-colorBNDS = [0 0 1];
-
-% Select which VAR variables to plot (indices into the VAR ordering 1..10)
-plot_vars   = [1, 2, 10];
 n_plot      = numel(plot_vars);
 plot_labels = VARnames(plot_vars);
 h = 0:opt.hor-1;
@@ -206,7 +218,7 @@ if numel(figs) >= 2
     fprintf('Saved Figure1 and Figure2.\n');
 end
 
-%% ── 8. Save workspace for downstream use ────────────────────────────────────
+%% ── 8. Save workspace for downstream use ──────────────────────────────────────
 save(fullfile(root_dir, 'Results_VAR.mat'), ...
      'vardata', 'opt', 'VARnames', ...
      'candidateirf_wold', 'MiddleD', 'HighD', 'LowD', 'HighD90', 'LowD90', ...
